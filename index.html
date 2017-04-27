@@ -5,7 +5,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<link href="https://fonts.googleapis.com/css?family=Libre+Franklin:400,400i,700,700i" rel="stylesheet">
+
 <link rel="stylesheet" type="text/css" href="app.css">
+
+<style>
+	p, h1, h2, h3, li{
+		font-family:"Libre Franklin", sans-serif;
+	}	
+</style>
+
 </head>
 
 <body style="min-height:1000px;margin:0px;background-color:#fafafa;max-width:1920px;margin:0px auto;">
@@ -13,7 +22,38 @@
 <script src="app.js" type="text/javascript"></script>
 
 <div class="metro-interactive">
-	
+
+	<div class="reading">
+		<p style="margin:1em 0em;">Out of work sketches<br />Apr 27, 2017</p>
+	</div>
+	<div class="reading">
+		<p><b>Notes on strategy based on initial meetings</b></p>
+		<p>Primary goal: Allow local policymakers and practitioners to tailor policies to their specific out of work populations.</p>
+		<p>Communications hurdles</p>
+		<ol>
+			<li>What does "out of work" mean?</li>
+			<li>What are the policy options for addressing the out of work groups?</li>
+			<li>How does this play out in MY jurisdiction?</li> 
+		</ol> 
+		<p>Need to clarify</p>
+		<ol>
+			<li>What is the most helpful frame here? Do the superclusters translate to policy interventions or is it the age/education matrix?</li> 
+			<li>How important are the details of the individual clusters for a given place? If the policy levers derive from the more coarse set of groups (superclusters or age/education groupings), how necessary are the details of the specific clusters? My sense is that the details of each cluster are useful to validate and/or revise the policy recommendations. But, what would a place do if the details of one or more clusters don't seem to jibe with the superset? Of course, the details are interesting for data/policy wonks and that may be sufficient argument for providing the details. Either way, the details should be a "second layer" to the presentation that can be ignored by the reader.</li>
+			<li>How do we handle the two primary age group divisions (18-24 and 25-64)?</li>
+		</ul>
+	</div>
+
+	<div class="reading header-box">
+		<p class="header"><b>The out of work population</b> <br />Who are they? How can policymakers and practitioners serve them best?</p>
+	</div>
+	<div class="reading">
+		<p style="">
+			<span>In the U.S. [OR SELECT JURISDICTION], there are xxx,xxx people between the ages of 18–64. <br/>In this graphic, 1 dot (</span>
+			<span class="divdot"></span> 
+			<span>) = 65 people.</span>
+		</p> 
+	</div>
+	<div id="dot-matrix"></div>
 </div>
 
 </body>

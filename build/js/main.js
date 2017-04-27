@@ -19,7 +19,16 @@ dir.local("./").add("data")
 //main out of work function to run on load
 function main(){
 
-	dot_matrix();
+	var dm = dot_matrix(document.getElementById("dot-matrix"));
+
+	//draw method is asynchronous
+	dm.draw();
+
+	var dmtimer;
+	window.addEventListener("resize", function(){
+		clearTimeout(dmtimer);
+		dmtimer = setTimeout(dm.draw, 250);
+	})
 
 } //close main()
 
