@@ -1,6 +1,6 @@
 //dot matrix module for out of work - v1.0
 
-export default function dot_matrix(container){
+export default function dot_matrix2(container){
 
 	var wrap = d3.select(container).style("min-height","100px")
 								   .style("margin","0.5em 1em")
@@ -18,6 +18,7 @@ export default function dot_matrix(container){
 	var height;
 
 	var proportions = [1];
+	var split = false;
 
 	var draw = function(){
 		var box = wrap.node().getBoundingClientRect();
@@ -98,6 +99,7 @@ export default function dot_matrix(container){
 			}
 
 
+
 			var last = 0;
 			return wholenums.map(function(d,i){
 				var seq = d3.range(last, d+last);
@@ -113,23 +115,35 @@ export default function dot_matrix(container){
 		g.exit().remove();
 		var G = g.enter().append("g").classed("pixels", true).merge(g);
 
-		var p = G.selectAll("circle.pixel").data(function(d){return d});
+		if(split){
+			G.attr("transform", function(d,i){
+				return "translate(0," + i*density + ")";
+			});
+
+			svgwrap.style("height",(height+(groups.length*density))+"px");
+		}
+
+		var p = G.selectAll("circle.pixel").data(function(d,i){
+			return d.map(function(d){
+				return {d:d, c: i==2 ? "#555555" : i==0 ? "#999999" : "#cccccc"}
+			})
+		});
 		p.exit().remove();
 		p.enter().append("circle").classed("pixel",true).merge(p)
 			.attr("cx",function(d,i){
-				var col = Math.floor(d%ncols);
+				var col = Math.floor(d.d%ncols);
 				return density + (col*density);
 			})
 			.attr("cy",function(d,i){
-				var row = Math.floor(d/ncols);
+				var row = Math.floor(d.d/ncols);
 				return density + (row*density);
 			})
 			.attr("fill", function(d,i){
-				return d3.interpolatePlasma(d/pixels);
+				return d.c;
 			})
 			.attr("r",radius)
 			.attr("stroke", function(d,i){
-				return d3.interpolatePlasma(d/pixels);
+				return d.c;
 			})
 			.attr("stroke-opacity","0.5")
 			;
@@ -145,7 +159,15 @@ export default function dot_matrix(container){
 			return proportions;
 		}
 	}
-	dm.draw = function(){setTimeout(draw, 0)};
+
+	dm.split = function(){
+		split = !split;
+		return dm;
+	}
+
+	dm.draw = function(){
+		setTimeout(draw, 0);
+	};
 	
 	return dm;
 }

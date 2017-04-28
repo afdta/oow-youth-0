@@ -1,6 +1,6 @@
 //dot matrix module for out of work - v1.0
 
-export default function dot_matrix(container){
+export default function dot_matrix3(container){
 
 	var wrap = d3.select(container).style("min-height","100px")
 								   .style("margin","0.5em 1em")
@@ -18,6 +18,7 @@ export default function dot_matrix(container){
 	var height;
 
 	var proportions = [1];
+	var split = false;
 
 	var draw = function(){
 		var box = wrap.node().getBoundingClientRect();
@@ -25,11 +26,11 @@ export default function dot_matrix(container){
 		var max_width = w - 50 > 1600 ? 1600 : w - 50;
 		
 		if(w < 1100){
-			pixels = 3000;
+			pixels = 1000;
 			radius = 2;		
 		}
 		else{
-			pixels = 5000;
+			pixels = 3000;
 			radius = 3;
 		}
 
@@ -98,6 +99,7 @@ export default function dot_matrix(container){
 			}
 
 
+
 			var last = 0;
 			return wholenums.map(function(d,i){
 				var seq = d3.range(last, d+last);
@@ -108,28 +110,39 @@ export default function dot_matrix(container){
 
 		var groups = split_peeps(proportions);
 
-
 		var g = svg.selectAll("g.pixels").data(groups);
 		g.exit().remove();
 		var G = g.enter().append("g").classed("pixels", true).merge(g);
 
-		var p = G.selectAll("circle.pixel").data(function(d){return d});
+		if(split){
+			G.attr("transform", function(d,i){
+				return "translate(0," + i*density*2 + ")";
+			});
+
+			svgwrap.style("height",(height+(groups.length*density*2))+"px");
+		}
+
+		var p = G.selectAll("circle.pixel").data(function(d,i){
+			return d.map(function(d){
+				return {d:d, c: i==0 ? "#b90b08" : i==1 ? "#fa9492" : i==2 ? "#0b4091" : "#93baf7"}
+			})
+		});
 		p.exit().remove();
 		p.enter().append("circle").classed("pixel",true).merge(p)
 			.attr("cx",function(d,i){
-				var col = Math.floor(d%ncols);
+				var col = Math.floor(d.d%ncols);
 				return density + (col*density);
 			})
 			.attr("cy",function(d,i){
-				var row = Math.floor(d/ncols);
+				var row = Math.floor(d.d/ncols);
 				return density + (row*density);
 			})
 			.attr("fill", function(d,i){
-				return d3.interpolatePlasma(d/pixels);
+				return d.c;
 			})
 			.attr("r",radius)
 			.attr("stroke", function(d,i){
-				return d3.interpolatePlasma(d/pixels);
+				return d.c;
 			})
 			.attr("stroke-opacity","0.5")
 			;
@@ -145,7 +158,15 @@ export default function dot_matrix(container){
 			return proportions;
 		}
 	}
-	dm.draw = function(){setTimeout(draw, 0)};
+
+	dm.split = function(){
+		split = !split;
+		return dm;
+	}
+
+	dm.draw = function(){
+		setTimeout(draw, 0);
+	};
 	
 	return dm;
 }

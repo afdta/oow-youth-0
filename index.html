@@ -27,18 +27,23 @@
 		<p style="margin:1em 0em;">Out of work sketches<br />Apr 27, 2017</p>
 	</div>
 	<div class="reading">
-		<p><b>Notes on strategy based on initial meetings</b></p>
-		<p>Primary goal: Allow local policymakers and practitioners to tailor policies to their specific out of work populations.</p>
-		<p>Communications hurdles</p>
+		<p>Notes on strategy</p>
+		<p><b>Primary goal: Enable local policymakers and practitioners to tailor policies to their specific out of work populations.</b></p>
+		<p>Key points for web layout</p>
 		<ol>
 			<li>What does "out of work" mean?</li>
-			<li>What are the policy options for addressing the out of work groups?</li>
-			<li>How does this play out in MY jurisdiction?</li> 
+			<li>What are the "types" of out of work people (superclusters)?</li>
+			<li>What are the policy options for each type? </li>
+			<li>How does this play out in the U.S. or any user-selectable jurisdiction?</li> 
+			<ul>
+				<li>Primary point: Distribution of population among superclusters and the policy implications of that</li>
+				<li>Secondary: Geographic distribution of superclusters</li>
+				<li>Secondary: Summary statistics for each individual cluster</li>
+				<li>Tertiary: Detailed data [download only?]</li>
+			</ul>
 		</ol> 
 		<p>Need to clarify</p>
 		<ol>
-			<li>What is the most helpful frame here? Do the superclusters translate to policy interventions or is it the age/education matrix?</li> 
-			<li>How important are the details of the individual clusters for a given place? If the policy levers derive from the more coarse set of groups (superclusters or age/education groupings), how necessary are the details of the specific clusters? My sense is that the details of each cluster are useful to validate and/or revise the policy recommendations. But, what would a place do if the details of one or more clusters don't seem to jibe with the superset? Of course, the details are interesting for data/policy wonks and that may be sufficient argument for providing the details. Either way, the details should be a "second layer" to the presentation that can be ignored by the reader.</li>
 			<li>How do we handle the two primary age group divisions (18-24 and 25-64)?</li>
 		</ul>
 	</div>
@@ -47,13 +52,50 @@
 		<p class="header"><b>The out of work population</b> <br />Who are they? How can policymakers and practitioners serve them best?</p>
 	</div>
 	<div class="reading">
+		<p>Most of the key points above are about describing the distribution of the population. First, in terms of status in the labor force, then in terms of superclusters, and finally in terms of individual clusters. The graphic below provides a simple way to do this, representing people with dots. As the user scrolls down the page, we can divide the groups of dots, color them differently, and annotate them to describe the various cuts of the data.</p>
 		<p style="">
-			<span>In the U.S. [OR SELECT JURISDICTION], there are xxx,xxx people between the ages of 18–64. <br/>In this graphic, 1 dot (</span>
+			<span>View 1: In the U.S. [OR SELECT JURISDICTION], there are xxx,xxx people between the ages of 18–64. <br/>In this graphic, 1 dot (</span>
 			<span class="divdot"></span> 
-			<span>) = 65 people.</span>
+			<span>) = XX people. The purpose here is to just familiarize the user with the graphic we'll use throughout the presentation.</span>
 		</p> 
 	</div>
 	<div id="dot-matrix"></div>
+
+	<div class="reading" style="margin-top:5em;">
+		<p style="">View 2: Split into employed, unemployed, not in labor force. </p> 
+	</div>
+	<div id="dot-matrix2"></div>
+
+	<div class="reading" style="margin-top:5em;">
+		<p style="">View 3: Split the unemployed (red) and not in labor force (blue) into "out of work." Note that these splits aren't very pretty, but they can be made to be! Rather than big long rows of dots, we can assemble them into groupings of narrower rectangles (like a <a href="https://en.wikipedia.org/wiki/Treemapping#/media/File:Gradient_grouped_treemap.jpg" target="_blank">treemap</a>). We would also add legends and annotations. In this case, we would describe who is/is not included in the out of work group (e.g. unemployed HS students living at home are not "out of work").</p> 
+	</div>
+	<div id="dot-matrix3"></div>
+
+	<div class="reading" style="margin-top:5em;">
+		<p style="">View 4: Split the out of work into superclusters. Obviously this diagram below does not work as is. The final layout here will need to provide sufficient space to annotate with supercluster labels and perhaps bulleted lists of policy interventions.</p> 
+	</div>
+	<div id="dot-matrix4"></div>
+
+	<div class="reading" style="margin-top:5em;">
+		<p style="">Views 5 and 6: "The details" (no sketches yet).</p>
+		<p>View 5: subdivide the dot grid into individual clusters (15 of these). This will require some experimentation because this is a lot of detail. An alternative to the dot grid used throughout this sketch is "<a href="https://bl.ocks.org/mbostock/7607535" target="_blank">circle packing</a> which is a useful alternative to explore."</p> 
+		<p>View 6: depart from the dot grid graphic and display a series of small multiple maps that show the geographic distribution of each supercluster. Imagine 9 small maps in a 3x3 grid to give the user a quick sense for where, say, most of the middle-aged/HS or less supercluster lives</p>
+	</div>
+
+	<div class="reading" style="margin-top:5em;">
+		<p style="">View 7: "Soooo much detail"</p>
+		<p>We probably don't need to visualize this, rather provide a way to download the full suite of indicators for each jurisdiction.</p>
+	</div>
+
+	<div class="reading" style="margin-top:5em;">
+		<p style="">Thoughts/Questions</p>
+		<p>The above sketches/notes don't make clear how we orient the user to the concept of the super cluster while conveying the policy implications of each. <a href="https://www.brookings.edu/research/redefining-global-cities/" target="_blank"> Redefining global cities</a> provides one model for doing that.</p>
+	</div>
+
+	<div class="reading" style="margin-top:5em;">
+		<p style="">Next steps</p>
+		<p>Flesh out the concepts above. In particular, see how views 4 (supercluster), 5 (cluster), and 6 (maps) accommodate the data we need them to as there are 6-8 indicators of interest for each supercluster.</p>
+	</div>
 </div>
 
 </body>

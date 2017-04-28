@@ -196,7 +196,9 @@ function dot_matrix(container){
 	var width;
 	var height;
 
-	var draw = function(group_proportions){
+	var proportions = [1];
+
+	var draw = function(){
 		var box = wrap.node().getBoundingClientRect();
 		var w = Math.floor(box.right - box.left);
 		var max_width = w - 50 > 1600 ? 1600 : w - 50;
@@ -252,8 +254,6 @@ function dot_matrix(container){
 			   .style("width",width+"px");
 
 		var allpeeps = d3.range(0, pixels);
-
-		var proportions = arguments.length > 0 ? group_proportions : [1];
 		
 		var split_peeps = function(props){
 			var propsum = d3.sum(props);
@@ -275,10 +275,24 @@ function dot_matrix(container){
 				wholenums[remainders[i].index] += 1;
 				addto--;
 			}
-			return wholenums.map(function(d){return d3.range(0, d)});
+
+
+			var last = 0;
+			return wholenums.map(function(d,i){
+				var seq = d3.range(last, d+last);
+				last = d+last;
+				return seq;
+			});
 		};
 
-		var p = svg.selectAll("circle.pixel").data(allpeeps);
+		var groups = split_peeps(proportions);
+
+
+		var g = svg.selectAll("g.pixels").data(groups);
+		g.exit().remove();
+		var G = g.enter().append("g").classed("pixels", true).merge(g);
+
+		var p = G.selectAll("circle.pixel").data(function(d){return d});
 		p.exit().remove();
 		p.enter().append("circle").classed("pixel",true).merge(p)
 			.attr("cx",function(d,i){
@@ -301,10 +315,366 @@ function dot_matrix(container){
 	};
 
 	var dm = {};
+	dm.proportions = function(gp){
+		if(arguments.length > 0){
+			proportions = gp;
+			return dm;
+		}
+		else{
+			return proportions;
+		}
+	};
 	dm.draw = function(){setTimeout(draw, 0);};
 	
 	return dm;
 }
+
+//dot matrix module for out of work - v1.0
+
+function dot_matrix2(container){
+
+	var wrap = d3.select(container).style("min-height","100px")
+								   .style("margin","0.5em 1em")
+								   .style("border-top","1px solid #dddddd");
+	var svgwrap = wrap.append("div").style("margin","1em auto");
+	var svg = svgwrap.append("svg").style("overflow","visible").attr("width","100%").attr("height","100%");
+
+	var pixels = 5000;
+	var pixel_pad = 3;
+	var radius = 4;
+	var flex_space = 150;
+
+	var width;
+	var height;
+
+	var proportions = [1];
+	var split = false;
+
+	var draw = function(){
+		var box = wrap.node().getBoundingClientRect();
+		var w = Math.floor(box.right - box.left);
+		var max_width = w - 50 > 1600 ? 1600 : w - 50;
+		
+		if(w < 1100){
+			pixels = 3000;
+			radius = 2;		
+		}
+		else{
+			pixels = 5000;
+			radius = 3;
+		}
+
+		var density = (2*radius) + pixel_pad;
+		
+		//set a width that accomodates density size on each side
+		width = w - (density*2) - flex_space;
+		if(width > max_width){width = max_width - (density*2);}
+
+		//how many columns of width 'density' fit in computed width
+		var ncols = Math.floor(width/density);
+
+		//how many rows are required to accommodate the width of all cells (of width 'density')
+		var nrows = (Math.ceil((pixels*density)/width));
+
+		//height based on nrows
+		var height = nrows*density;
+
+		//try to make a rectangle
+		(function(){
+			var ncols_ = ncols;
+			var nrows_ = nrows;
+			var i = -1;
+
+			//iterate up to 10 times
+			while(++i < ncols/2 && nrows_*ncols_ != pixels && ncols_ > 10){
+				ncols_ -= 1;
+				nrows_ = Math.ceil(pixels/ncols_);
+			}
+
+			if(nrows_ * ncols_ == pixels){
+				nrows = nrows_;
+				ncols = ncols_;
+
+				width = (ncols * density) + density;
+				height = (nrows * density) + density;
+			}	
+		})();
+
+		//console.log("w: " + width + " h:" + height + " rows: " + nrows + " cols: " + ncols);
+
+		svgwrap.style("height",height+"px")
+			   .style("width",width+"px");
+
+		var allpeeps = d3.range(0, pixels);
+		
+		var split_peeps = function(props){
+			var propsum = d3.sum(props);
+			//ensure that the sum is <= 1.0;
+			var p = props.map(function(d){
+				return d/propsum;
+			});
+
+			var wholenums = p.map(function(d){return Math.floor(d*pixels)});
+			var remainders = p.map(function(d,i){
+				return {index:i, value:((d*pixels)-Math.floor(d*pixels))};
+			}).sort(function(a,b){return b.value-a.value});
+			
+			var addto = pixels - d3.sum(wholenums);
+
+			var i = -1;
+			while(addto > 0){
+				i = (i+1)%remainders.length;
+				wholenums[remainders[i].index] += 1;
+				addto--;
+			}
+
+
+
+			var last = 0;
+			return wholenums.map(function(d,i){
+				var seq = d3.range(last, d+last);
+				last = d+last;
+				return seq;
+			});
+		};
+
+		var groups = split_peeps(proportions);
+
+
+		var g = svg.selectAll("g.pixels").data(groups);
+		g.exit().remove();
+		var G = g.enter().append("g").classed("pixels", true).merge(g);
+
+		if(split){
+			G.attr("transform", function(d,i){
+				return "translate(0," + i*density + ")";
+			});
+
+			svgwrap.style("height",(height+(groups.length*density))+"px");
+		}
+
+		var p = G.selectAll("circle.pixel").data(function(d,i){
+			return d.map(function(d){
+				return {d:d, c: i==2 ? "#555555" : i==0 ? "#999999" : "#cccccc"}
+			})
+		});
+		p.exit().remove();
+		p.enter().append("circle").classed("pixel",true).merge(p)
+			.attr("cx",function(d,i){
+				var col = Math.floor(d.d%ncols);
+				return density + (col*density);
+			})
+			.attr("cy",function(d,i){
+				var row = Math.floor(d.d/ncols);
+				return density + (row*density);
+			})
+			.attr("fill", function(d,i){
+				return d.c;
+			})
+			.attr("r",radius)
+			.attr("stroke", function(d,i){
+				return d.c;
+			})
+			.attr("stroke-opacity","0.5")
+			;
+	};
+
+	var dm = {};
+	dm.proportions = function(gp){
+		if(arguments.length > 0){
+			proportions = gp;
+			return dm;
+		}
+		else{
+			return proportions;
+		}
+	};
+
+	dm.split = function(){
+		split = !split;
+		return dm;
+	};
+
+	dm.draw = function(){
+		setTimeout(draw, 0);
+	};
+	
+	return dm;
+}
+
+//dot matrix module for out of work - v1.0
+
+function dot_matrix3(container){
+
+	var wrap = d3.select(container).style("min-height","100px")
+								   .style("margin","0.5em 1em")
+								   .style("border-top","1px solid #dddddd");
+	var svgwrap = wrap.append("div").style("margin","1em auto");
+	var svg = svgwrap.append("svg").style("overflow","visible").attr("width","100%").attr("height","100%");
+
+	var pixels = 5000;
+	var pixel_pad = 3;
+	var radius = 4;
+	var flex_space = 150;
+
+	var width;
+	var height;
+
+	var proportions = [1];
+	var split = false;
+
+	var draw = function(){
+		var box = wrap.node().getBoundingClientRect();
+		var w = Math.floor(box.right - box.left);
+		var max_width = w - 50 > 1600 ? 1600 : w - 50;
+		
+		if(w < 1100){
+			pixels = 1000;
+			radius = 2;		
+		}
+		else{
+			pixels = 3000;
+			radius = 3;
+		}
+
+		var density = (2*radius) + pixel_pad;
+		
+		//set a width that accomodates density size on each side
+		width = w - (density*2) - flex_space;
+		if(width > max_width){width = max_width - (density*2);}
+
+		//how many columns of width 'density' fit in computed width
+		var ncols = Math.floor(width/density);
+
+		//how many rows are required to accommodate the width of all cells (of width 'density')
+		var nrows = (Math.ceil((pixels*density)/width));
+
+		//height based on nrows
+		var height = nrows*density;
+
+		//try to make a rectangle
+		(function(){
+			var ncols_ = ncols;
+			var nrows_ = nrows;
+			var i = -1;
+
+			//iterate up to 10 times
+			while(++i < ncols/2 && nrows_*ncols_ != pixels && ncols_ > 10){
+				ncols_ -= 1;
+				nrows_ = Math.ceil(pixels/ncols_);
+			}
+
+			if(nrows_ * ncols_ == pixels){
+				nrows = nrows_;
+				ncols = ncols_;
+
+				width = (ncols * density) + density;
+				height = (nrows * density) + density;
+			}	
+		})();
+
+		//console.log("w: " + width + " h:" + height + " rows: " + nrows + " cols: " + ncols);
+
+		svgwrap.style("height",height+"px")
+			   .style("width",width+"px");
+
+		var allpeeps = d3.range(0, pixels);
+		
+		var split_peeps = function(props){
+			var propsum = d3.sum(props);
+			//ensure that the sum is <= 1.0;
+			var p = props.map(function(d){
+				return d/propsum;
+			});
+
+			var wholenums = p.map(function(d){return Math.floor(d*pixels)});
+			var remainders = p.map(function(d,i){
+				return {index:i, value:((d*pixels)-Math.floor(d*pixels))};
+			}).sort(function(a,b){return b.value-a.value});
+			
+			var addto = pixels - d3.sum(wholenums);
+
+			var i = -1;
+			while(addto > 0){
+				i = (i+1)%remainders.length;
+				wholenums[remainders[i].index] += 1;
+				addto--;
+			}
+
+
+
+			var last = 0;
+			return wholenums.map(function(d,i){
+				var seq = d3.range(last, d+last);
+				last = d+last;
+				return seq;
+			});
+		};
+
+		var groups = split_peeps(proportions);
+
+		var g = svg.selectAll("g.pixels").data(groups);
+		g.exit().remove();
+		var G = g.enter().append("g").classed("pixels", true).merge(g);
+
+		if(split){
+			G.attr("transform", function(d,i){
+				return "translate(0," + i*density*2 + ")";
+			});
+
+			svgwrap.style("height",(height+(groups.length*density*2))+"px");
+		}
+
+		var p = G.selectAll("circle.pixel").data(function(d,i){
+			return d.map(function(d){
+				return {d:d, c: i==0 ? "#b90b08" : i==1 ? "#fa9492" : i==2 ? "#0b4091" : "#93baf7"}
+			})
+		});
+		p.exit().remove();
+		p.enter().append("circle").classed("pixel",true).merge(p)
+			.attr("cx",function(d,i){
+				var col = Math.floor(d.d%ncols);
+				return density + (col*density);
+			})
+			.attr("cy",function(d,i){
+				var row = Math.floor(d.d/ncols);
+				return density + (row*density);
+			})
+			.attr("fill", function(d,i){
+				return d.c;
+			})
+			.attr("r",radius)
+			.attr("stroke", function(d,i){
+				return d.c;
+			})
+			.attr("stroke-opacity","0.5")
+			;
+	};
+
+	var dm = {};
+	dm.proportions = function(gp){
+		if(arguments.length > 0){
+			proportions = gp;
+			return dm;
+		}
+		else{
+			return proportions;
+		}
+	};
+
+	dm.split = function(){
+		split = !split;
+		return dm;
+	};
+
+	dm.draw = function(){
+		setTimeout(draw, 0);
+	};
+	
+	return dm;
+}
+
+//dot matrix module for out of work - v1.0
 
 //"out of work" population project, june 2017
 //add browser compat message: test for svg, array.filter and map
@@ -319,14 +689,25 @@ dir.local("./").add("data");
 function main(){
 
 	var dm = dot_matrix(document.getElementById("dot-matrix"));
+	var dm2 = dot_matrix2(document.getElementById("dot-matrix2"));
+	var dm3 = dot_matrix3(document.getElementById("dot-matrix3"));
+	var dm4 = dot_matrix3(document.getElementById("dot-matrix4"));
 
 	//draw method is asynchronous
-	dm.draw();
+	dm.proportions([0.75,0.05,0.2]).draw();
+	dm2.proportions([0.75,0.05,0.2]).split().draw();
+	dm3.proportions([0.2,0.05,0.3,0.45]).split().draw();
+	dm4.proportions([0.1,0.05,0.2,0.3,0.01,.03,.3,0.1,0.3]).split().draw();
 
 	var dmtimer;
 	window.addEventListener("resize", function(){
 		clearTimeout(dmtimer);
-		dmtimer = setTimeout(dm.draw, 250);
+		dmtimer = setTimeout(function(){
+			dm.draw();
+			dm2.draw();
+			dm3.draw();
+			dm4.draw();
+		}, 250);
 	});
 
 } //close main()
