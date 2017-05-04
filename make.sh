@@ -10,7 +10,7 @@ rollup -c ./build/rollup.config.js -o ./build/tmp.js
 
 cat ../js-modules/d3/d3.min.js \
 ./build/.newline.txt \
-/home/alec/.local/lib/node-v7.0.0-linux-x64/lib/node_modules/topojson/dist/topojson.min.js \
+/home/alec/.local/lib/node/lib/node_modules/topojson/dist/topojson.min.js \
 ./build/.newline.txt \
 ./build/tmp.js > app.js
 

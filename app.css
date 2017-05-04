@@ -92,6 +92,15 @@ div.header-box{
   color:#ffffff;
 }
 
+img{
+  width:100%;
+}
+
+.bar-chart{
+  max-width:300px;
+  margin:0px auto;
+}
+
 
 @media (min-width:0px){
 

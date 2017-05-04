@@ -26,11 +26,11 @@ export default function dot_matrix3(container){
 		var max_width = w - 50 > 1600 ? 1600 : w - 50;
 		
 		if(w < 1100){
-			pixels = 3000;
+			pixels = 1000;
 			radius = 2;		
 		}
 		else{
-			pixels = 5000;
+			pixels = 3000;
 			radius = 3;
 		}
 
@@ -110,22 +110,21 @@ export default function dot_matrix3(container){
 
 		var groups = split_peeps(proportions);
 
-
 		var g = svg.selectAll("g.pixels").data(groups);
 		g.exit().remove();
 		var G = g.enter().append("g").classed("pixels", true).merge(g);
 
 		if(split){
 			G.attr("transform", function(d,i){
-				return "translate(0," + i*density + ")";
+				return "translate(0," + i*density*2 + ")";
 			});
 
-			svgwrap.style("height",(height+(groups.length*density))+"px");
+			svgwrap.style("height",(height+(groups.length*density*2))+"px");
 		}
 
 		var p = G.selectAll("circle.pixel").data(function(d,i){
 			return d.map(function(d){
-				return {d:d, c: i==2 || i==3 ? "#333333" : "#999999"}
+				return {d:d, c: i==0 ? "#b90b08" : i==1 ? "#fa9492" : i==2 ? "#0b4091" : "#93baf7"}
 			})
 		});
 		p.exit().remove();

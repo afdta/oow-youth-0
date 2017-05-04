@@ -25,13 +25,13 @@ function main(){
 	var dm = dot_matrix(document.getElementById("dot-matrix"));
 	var dm2 = dot_matrix2(document.getElementById("dot-matrix2"));
 	var dm3 = dot_matrix3(document.getElementById("dot-matrix3"));
-	var dm4 = dot_matrix3(document.getElementById("dot-matrix4"));
+	var dm4 = dot_matrix4(document.getElementById("dot-matrix4"));
 
 	//draw method is asynchronous
 	dm.proportions([0.75,0.05,0.2]).draw();
 	dm2.proportions([0.75,0.05,0.2]).split().draw();
-	dm3.proportions([0.2,0.05,0.3,0.45]).split().draw();
-	dm4.proportions([0.1,0.05,0.2,0.3,0.01,.03,.3,0.1,0.3]).split().draw();
+	dm3.proportions([0.75,0.01,0.04,0.20,0.2]).split().draw();
+	dm4.proportions([0.02,0.025,0.03,0.01,.03,.03,0.01,0.003,.01,0.85]).split().draw();
 
 	var dmtimer;
 	window.addEventListener("resize", function(){

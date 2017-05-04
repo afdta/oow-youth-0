@@ -1,6 +1,6 @@
 //dot matrix module for out of work - v1.0
 
-export default function dot_matrix3(container){
+export default function dot_matrix4(container){
 
 	var wrap = d3.select(container).style("min-height","100px")
 								   .style("margin","0.5em 1em")
@@ -26,11 +26,11 @@ export default function dot_matrix3(container){
 		var max_width = w - 50 > 1600 ? 1600 : w - 50;
 		
 		if(w < 1100){
-			pixels = 1000;
+			pixels = 3000;
 			radius = 2;		
 		}
 		else{
-			pixels = 3000;
+			pixels = 5000;
 			radius = 3;
 		}
 
@@ -122,9 +122,10 @@ export default function dot_matrix3(container){
 			svgwrap.style("height",(height+(groups.length*density*2))+"px");
 		}
 
+		var cols = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6',"#999999"];
 		var p = G.selectAll("circle.pixel").data(function(d,i){
 			return d.map(function(d){
-				return {d:d, c: i==0 ? "#b90b08" : i==1 ? "#fa9492" : i==2 ? "#0b4091" : "#93baf7"}
+				return {d:d, c: cols[i]}
 			})
 		});
 		p.exit().remove();
