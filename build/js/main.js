@@ -12,9 +12,6 @@ import format from '../../../js-modules/formats.js';
 
 //out of work modules
 import dot_matrix from './dot-matrix.js';
-import dot_matrix2 from './dot-matrix2.js';
-import dot_matrix3 from './dot-matrix3.js';
-import dot_matrix4 from './dot-matrix4.js';
 
 dir.local("./").add("data")
 //dir.add("data", "outof-work/data");
@@ -23,24 +20,30 @@ dir.local("./").add("data")
 function main(){
 
 	var dm = dot_matrix(document.getElementById("dot-matrix"));
-	var dm2 = dot_matrix2(document.getElementById("dot-matrix2"));
-	var dm3 = dot_matrix3(document.getElementById("dot-matrix3"));
-	var dm4 = dot_matrix4(document.getElementById("dot-matrix4"));
 
-	//draw method is asynchronous
-	dm.proportions([0.75,0.05,0.2]).draw();
-	dm2.proportions([0.75,0.05,0.2]).split().draw();
-	dm3.proportions([0.75,0.01,0.04,0.20,0.2]).split().draw();
-	dm4.proportions([0.02,0.025,0.03,0.01,.03,.03,0.01,0.003,.01,0.85]).split().draw();
+	//add a view
+	var view1 = dm.view();
+
+	//add a single group to the view, as well as three subgroups
+	var total = view1.group("all", 100000)
+					 .subgroup("employed", 75000)
+					 .subgroup("unemployed", 10000)
+					 .subgroup("not in the labor force", 15000)
+					 ;
+				view1.group("other",5000);
+
+	view1.draw()
+
+	//console.log(total.subgroups.sum());
+
+	//console.log(total);
+
 
 	var dmtimer;
 	window.addEventListener("resize", function(){
 		clearTimeout(dmtimer);
 		dmtimer = setTimeout(function(){
-			dm.draw();
-			dm2.draw();
-			dm3.draw();
-			dm4.draw();
+			//dm.draw();
 		}, 250);
 	})
 
