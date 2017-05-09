@@ -1,8 +1,37 @@
-import waypoint from '../../../js-modules/on-scroll2.js';
+//Array.isArray polyfill. Credit: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray?v=control
+if (!Array.isArray) {
+  Array.isArray = function(arg) {
+    return Object.prototype.toString.call(arg) === '[object Array]';
+  };
+}
+
+//flatten an array of arrays
+function unlist(arr, recursive){
+  //flatten one level
+  var flat = [].concat.apply([], arr)
+  
+  if(arguments.length > 1 && !!recursive){
+  	//determine if there are arrays in the flattened array
+  	var i = -1;
+    var nested_arrays = false;
+    while(++i < flat.length){
+    	if(Array.isArray(flat[i])){
+      		nested_arrays = true;
+        	break;
+      	}
+    }
+    //if there are nested arrays, recurse, otherwise just return
+    return nested_arrays ? unlist(flat, recursive) : flat;
+  }
+  else{
+	return flat;
+  }
+}
+
 
 //dot matrix module for out of work - v2
 
-export default function dot_matrix(container){
+export default function dot_matrix(container, dot_radius){
 
 	//private members
 	var wrap = d3.select(container).style("min-height","100px")
@@ -14,7 +43,7 @@ export default function dot_matrix(container){
 
 	var pixels = 5000;
 	var pixel_pad = 3;
-	var radius = 4;
+	var default_radius = arguments.length > 1 ? dot_radius : 4;
 	var flex_space = 150;
 
 	var width;
@@ -25,6 +54,10 @@ export default function dot_matrix(container){
 
 	//dm object
 	var dm = {};
+
+	dm.node = function(){
+		return container;
+	}
 
 	//register each view with the dot matrix and encapsuate view-specific variables
 	//to do - handle scroll events
@@ -42,13 +75,16 @@ export default function dot_matrix(container){
 			//private view variables
 			var par = {
 				groups:[],
-				color:null,
-				tot_people:0
+				flat:[],
+				tot_people:0,
+				state: null
 			};
 
 			//view.group (view.draw) will always call group() (draw()) with par as this
-			view.group = function(name, num){
-				var grouping = group.call(par, name, num);
+			view.group = function(name, id, num, color){
+				var grouping = group.call(par, name, id, num, color);
+				grouping.init = view.init; //expose on grouping object
+				grouping.group = view.group; //expose
 				return grouping;
 			};
 
@@ -60,8 +96,26 @@ export default function dot_matrix(container){
 				return view;				
 			}
 
-			view.draw = function(){
-				draw.call(par);
+			//to do -- keep track of state in par
+			view.init = function(){
+				var redraw = init.call(par);
+				view.drawGroups = function(duration){
+					par.state = "groups";
+					redraw(duration);
+				};
+				view.drawSubgroups = function(duration){
+					par.state = "subgroups";
+					redraw(duration);
+				}
+				return view;
+			}
+
+			view.drawGroups = function(){
+				//no-op
+			}
+
+			view.drawSubgroups = function(){
+				//no-op
 			}
 
 			//register view
@@ -70,18 +124,34 @@ export default function dot_matrix(container){
 		}
 	}
 
+	function promote(){
+		var flat = this.flat;
+	}
+
 	//register a group with a view
-	function group(name, num){
+	function group(name, id, num, color){
 		var view = this;
-		var id = view.groups.length;
-		var grouping = {id:id, name:name, num:num};
+		var order = view.groups.length;
+		var grouping = {id:id, name:name, num:num, order:order};
+		if(arguments.length > 3){
+			grouping.col = color;
+		}
+		else{
+			grouping.col = "#666666";
+		}
+
 		var subgroups = [];
 		
 		//register subgroups
-		grouping.subgroup = function(name, num){
-			var sid = subgroups.length;
-			var sub = {id:sid, name:name, num:num};
-			
+		grouping.subgroup = function(name, sid, num, color){
+			var order = subgroups.length;
+			var sub = {id:sid, name:name, num:num, order:order};
+			if(arguments.length > 3){
+				sub.col = color;
+			}
+			else{
+				sub.col = "#666666";
+			}
 			subgroups.push(sub);
 
 			return grouping;
@@ -92,7 +162,9 @@ export default function dot_matrix(container){
 			if(arguments.length > 0){
 				var i = -1;
 				while(++i < array_of_subgroups.length){
-					grouping.subgroup(array_of_subgroups[i].name, array_of_subgroups[i].num)
+					grouping.subgroup(array_of_subgroups[i].name, 
+									  array_of_subgroups[i].id, 
+									  array_of_subgroups[i].num)
 				}
 				return grouping;
 			}
@@ -132,143 +204,262 @@ export default function dot_matrix(container){
 		return grouping;
 	}
 
-	function draw(){
+	function init(){
 		var groups = this.groups;
-		var color = this.color;
 		var tot_people = this.tot_people;
+		var par = this;
 
 		var box = wrap.node().getBoundingClientRect();
 		var w = Math.floor(box.right - box.left);
-		var max_width = w - 50 > 1600 ? 1600 : w - 50;
+		var max_width = 1920;
+		var min_width = 320;
+		var aspect = w > 900 ? 4/1.3 : 4/2.5;
+
+
+		var radius = Math.round(default_radius*(w/1920));
+	
+		var density = (2*radius) + pixel_pad;			
 		
-		//determine number of dots ("pixels") to include in array
-		if(w < 1100){
-			pixels = 3000;
-			radius = 2;		
+		//set a width that accomodates density size on each side
+		width = w - (density*2) - flex_space;
+		if(width > max_width){
+			width = max_width - (density*2);
 		}
-		else{
-			pixels = 5000;
-			radius = 3;
+		else if(width < min_width){
+			width = min_width - (density*2);
 		}
 
-		var flat = [];
+		
+		//how many columns of width 'density' fit in computed width
+		var ncols = Math.floor(width/density);
 
-		groups.forEach(function(d,i,a){
+		var nrows = Math.round(ncols/aspect);
+		
+		pixels = ncols*nrows;
+
+		//how many rows are required to accommodate the width of all cells (of width 'density')
+		//var nrows = (Math.ceil((pixels*density)/width));
+
+		//height based on nrows
+		var height = nrows*density + density*2;	
+
+		svgwrap.style("height",height+"px")
+			   .style("width",width+"px");	
+
+
+		var g1 = groups.map(function(d,i,a){
 			var id = d.id;
 			var name = d.name;
 			var num = d.num;
 			var subs = d.subgroups();
+
+			var share = num/tot_people;
+			var whole = Math.floor(share*pixels);
+			var remainder = (share*pixels)-whole;
+
+			return {group:{
+							id:id,
+							name:name,
+							num:num,
+							share:share,
+							whole:whole,
+							remainder:remainder,
+							col:d.col,
+							order:d.order,
+							subs:subs
+						}
+				   }
+		});
+
+		//allocate all pixels
+		(function(){
+			//sort by remainder
+			g1.sort(function(a,b){return b.group.remainder - a.group.remainder});
+			//how many whole pixels accounted for
+			var tot = d3.sum(g1, function(d){return d.group.whole});
+			//need to add this many
+			var toadd = pixels - tot;
+			//increment, starting with largest remainders first
+			var i = -1;
+			while(++i < g1.length && toadd > 0){
+				g1[i].group.whole_ = g1[i].group.whole;
+				g1[i].group.whole = g1[i].group.whole + 1;
+				toadd--;
+			}
+		})();
+
+		//allocate subgroup pixels (dots)
+		//to do: prove it doesn't matter from a precision standpoint if you control subgroups to group level or total level
+		var s1 = g1.map(function(d,i,a){
+			var subs = d.group.subs;
+			var gtot = d.group.num; //total people in group
+			var gpixels = d.group.whole; //number of pixels allocated to group
+			
 			if(subs.length > 0){
-				subs.forEach(function(dd,ii,aa){
-					flat.push({
-								group:{id:id, name:name, num:num}, 
-							   	subgroup:{id:dd.id, name:dd.name, num:dd.num, share:dd.num/tot_people}
-							  });
+				var subfull = subs.map(function(dd,ii,aa){
+					var share = dd.num/gtot; //control to group level
+					var whole = Math.floor(share*gpixels);
+					var remainder = (share*gpixels) - whole;
+					
+					return {group:d.group, 
+							subgroup:{id:dd.id, 
+									  name:dd.name, 
+									  num:dd.num, 
+									  share:share, 
+									  whole: whole,
+									  remainder:remainder,
+									  order:dd.order,
+									  col: dd.col
+									}
+							}
+
 				});
+
+				subfull.sort(function(a,b){return b.subgroup.remainder - a.subgroup.remainder});
+				//how many whole pixels accounted for in subgroup
+				var subtot = d3.sum(subfull, function(d){return d.subgroup.whole});
+				//need to add this many
+				var toadd = gpixels - subtot;
+				//increment, starting with largest remainders first
+				var j = -1;
+				while(++j < subfull.length && toadd > 0){
+					subfull[j].subgroup.whole_ = subfull[j].subgroup.whole;
+					subfull[j].subgroup.whole = subfull[j].subgroup.whole + 1;
+					toadd--;
+				}
+
+				return subfull;
 			}
 			else{
-				flat.push({
-							group:{id:id, name:name, num:num}, 
-						   	subgroup:{id:0, name:name, num:num, share:num/tot_people}
-						   });
+				return { 
+					group:d.group, 
+					subgroup:{id:0, 
+							  name:d.group.name, 
+							  num:d.group.num, 
+						   	  share:1,
+						   	  whole:d.group.whole,
+						   	  remainder:0,
+						   	  order:0,
+						   	  col:d.group.col
+						} 
+				};
 			}
 		});
 
-		//LEFT OFF HERE ...
-		//translate shares to whole dots
-		var wholenums = flat.map(function(d){return Math.floor(d.subgroup.share*pixels)});
-		var remainders = p.map(function(d,i){
-				return {index:i, value:((d*pixels)-Math.floor(d*pixels))};
-			}).sort(function(a,b){return b.value-a.value});
-			
-			var addto = pixels - d3.sum(wholenums);
+		function draw(duration){
+			//sort by group then subgroup in order they were added
+			var flat = unlist(s1);
 
-			var i = -1;
-			while(addto > 0){
-				i = (i+1)%remainders.length;
-				wholenums[remainders[i].index] += 1;
-				addto--;
+			if(par.state == "groups" || par.state == null){
+				flat.sort(function(a,b){
+					if(a.group.order < b.group.order){
+						var i = -1;
+					}
+					else if(a.group.order > b.group.order){
+						var i = 1;
+					}
+					else if(a.subgroup.order < b.subgroup.order){
+						var i = -1;
+					}
+					else if(a.subgroup.order > b.subgroup.order){
+						var i = 1;
+					}
+					else{
+						var i = 0;
+					}
+					return i;
+				});
+			}
+			else if(par.state == "subgroups"){
+				flat.sort(function(a,b){
+					if(a.subgroup.id < b.subgroup.id){
+						var i = -1;
+					}
+					else if(a.subgroup.id > b.subgroup.id){
+						var i = 1;
+					}
+					else if(a.group.order < b.group.order){
+						var i = -1;
+					}
+					else if(a.group.order > b.group.order){
+						var i = 1;
+					}
+					else{
+						var i = 0;
+					}
+					return i;
+				});				
 			}
 
+			var num_before = 0;
 
-			var last = 0;
-			return wholenums.map(function(d,i){
-				var seq = d3.range(last, d+last);
-				last = d+last;
-				return seq;
+			flat.forEach(function(d){
+				d.subgroup.num_before = num_before;
+				num_before = d.subgroup.whole + num_before;
 			});
-		}		
 
-		//console.log(flat);
+			var g_subgroups = svg.selectAll("g.sub-group").data(flat, function(d,i){return "g"+d.group.id+"s"+d.subgroup.id});
+			g_subgroups.exit().remove();
 
-		var density = (2*radius) + pixel_pad;
-		
-		//set a width that accomodates density size on each side
-		width = w - (density*2) - flex_space;
-		if(width > max_width){width = max_width - (density*2)}
+			var p = g_subgroups.enter().append("g").classed("sub-group",true).merge(g_subgroups)
+					.selectAll("circle.pixel").data(function(d,i){
+						var start = d.subgroup.num_before;
+						var end = start + d.subgroup.whole;
+						var range = d3.range(start, end);
+						return range.map(function(dd){
+							return {d:dd, group:d.group, subgroup:d.subgroup}
+						});
+					});
+			p.exit().remove();
 
-		//how many columns of width 'density' fit in computed width
-		var ncols = Math.floor(width/density);
+			var dur = arguments.length == 0 || duration==null ? 1000 : duration;
+			
+			var P = p.enter().append("circle").classed("pixel",true).merge(p)
+						.attr("r",radius)
+						.attr("stroke-opacity","0.5")
+						.transition().duration(dur)
+						.attr("cx",function(d,i){
+							var col = Math.floor(d.d/nrows);
+							return density + (col*density);
+						})
+						.attr("cy",function(d,i){
+							var col = Math.floor(d.d/nrows);
+							var row = d.d - (nrows*col);
+							return density + (row*density);
+						})
+						.attr("fill", function(d,i){
+							if(par.state == null){
+								return d3.interpolatePlasma(d.d/pixels);
+							}
+							else if(par.state == "groups"){
+								return d.group.col;
+							}
+							else{
+								return d.subgroup.col;
+							}
+							
+						})
+						.attr("stroke", function(d,i){
+							if(par.state == null){
+								return d3.interpolatePlasma(d.d/pixels);
+							}
+							else if(par.state == "groups"){
+								return d.group.col;
+							}
+							else{
+								return d.subgroup.col;
+							}
+						})
+						;
 
-		//how many rows are required to accommodate the width of all cells (of width 'density')
-		var nrows = (Math.ceil((pixels*density)/width));
+						console.log(P);
 
-		//height based on nrows
-		var height = nrows*density;
-
-		//try to make a rectangle
-		(function(){
-			var ncols_ = ncols;
-			var nrows_ = nrows;
-			var i = -1;
-
-			//iterate up to 10 times
-			while(++i < ncols/2 && nrows_*ncols_ != pixels && ncols_ > 10){
-				ncols_ -= 1;
-				nrows_ = Math.ceil(pixels/ncols_);
-			}
-
-			if(nrows_ * ncols_ == pixels){
-				nrows = nrows_;
-				ncols = ncols_;
-
-				width = (ncols * density) + density;
-				height = (nrows * density) + density;
-			}	
-		})();
-
-		//console.log("w: " + width + " h:" + height + " rows: " + nrows + " cols: " + ncols);
-
-		svgwrap.style("height",height+"px")
-			   .style("width",width+"px");
-		
-
-		//var groups = split_peeps(proportions);
+		}
 
 
-		//var g = svg.selectAll("g.pixels").data(groups);
-		//g.exit().remove();
-		//var G = g.enter().append("g").classed("pixels", true).merge(g);
-		var p = svg.selectAll("circle.pixel").data(d3.range(0,pixels));
-		p.exit().remove();
-		p.enter().append("circle").classed("pixel",true).merge(p)
-			.attr("cx",function(d,i){
-				var col = Math.floor(d%ncols);
-				return density + (col*density);
-			})
-			.attr("cy",function(d,i){
-				var row = Math.floor(d/ncols);
-				return density + (row*density);
-			})
-			.attr("fill", function(d,i){
-				return d3.interpolatePlasma(d/pixels);
-			})
-			.attr("r",radius)
-			.attr("stroke", function(d,i){
-				return d3.interpolatePlasma(d/pixels);
-			})
-			.attr("stroke-opacity","0.5")
-			;
+		draw(0);
+
+		return draw;
 	}
 	
 	return dm;

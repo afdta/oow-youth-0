@@ -24,45 +24,90 @@
 <div class="metro-interactive">
 
 	<div class="reading">
-		<p style="margin:1em 0em;">Out of work sketches<br />Apr 27, 2017</p>
+		<p style="margin:1em 0em;">Out of work sketches<br />May 9, 2017</p>
 	</div>
 
 	<div class="reading header-box">
 		<p class="header"><b>The out of work population</b> <br />Who are they? How can policymakers and practitioners serve them best?</p>
 	</div>
-	<div class="reading">
-		<p style="">
-			<span><b>View 1</b>: In the U.S. [OR SELECT JURISDICTION], there are xxx,xxx people between the ages of 18–64. <br/>In this graphic, 1 dot (</span>
-			<span class="divdot"></span> 
-			<span>) = XX people.</span>
-		</p> 
-	</div>
-	<div id="dot-matrix"></div>
 
-	<div class="reading" style="margin-top:5em;">
-		<p style=""><b>View 2</b>: Split into employed, unemployed, not in labor force. </p> 
-	</div>
-	<div id="dot-matrix2"></div>
-
-	<div class="reading" style="margin-top:5em;">
-		<p style=""><b>View 3</b>: Split the employed, unemployed, and not in labor force into "out of work" (dark gray in example below). Note that these splits aren't very pretty, but they can be made to be! Rather than big long rows of dots, we can assemble them into groupings of narrower rectangles (like a <a href="https://en.wikipedia.org/wiki/Treemapping#/media/File:Gradient_grouped_treemap.jpg" target="_blank">treemap</a>). We would also add legends and annotations.</p> 
-	</div>
-	<div id="dot-matrix3"></div>
-
-	<div class="reading" style="margin-top:5em;">
-		<p style=""><b>View 4</b>: Split the out of work into superclusters. Obviously this diagram below does not work as is. The final layout here will need to provide sufficient space to annotate with supercluster labels and perhaps bulleted lists of policy interventions.</p> 
-	</div>
-	
 	<div class="c-fix">
-		<div style="width:80%; max-width:1400px;float:left">
-			<div id="dot-matrix4"></div>
+		<div class="reading">
+			<p style="">
+				<span><b>View 1</b>: In the U.S. [OR SELECT JURISDICTION], there are xxx,xxx people between the ages of 18–64. <br/>In this graphic, 1 dot (</span>
+				<span class="divdot"></span> 
+				<span>) = XX people.</span>
+			</p> 
+		</div>	
+
+		<div style="width:80%; max-width:1920px;float:left">
+			<div id="dot-matrix1"></div>
 		</div>
+
 		<div style="width:20%;float:left";>
 			<div class="bar-chart">
-				<img src="build/wireframes/bar-chart.png" />
+				<img src="build/wireframes/bar-chart-1.png" />
 			</div>
 		</div>
 	</div>
+
+	<div class="c-fix" style="margin-top:10em;">
+		<div class="reading">
+			<p style="">
+				<span><b>View 2</b>: Each person in this population is either <b>employed</b>, <b>unemployed</b>, or <b>not in labor force</b>. 
+			</p> 
+		</div>	
+
+		<div style="width:80%; max-width:1920px;float:left">
+			<div id="dot-matrix2"></div>
+		</div>
+
+		<div style="width:20%;float:left";>
+			<div class="bar-chart">
+				<img src="build/wireframes/bar-chart-2.png" />
+			</div>
+		</div>
+	</div>
+
+	<div class="c-fix" style="margin-top:10em;">
+		<div class="reading">
+			<p style="">
+				<span><b>View 3</b>: Of the unemployed and not in the labor force 27.8 million are <b>"out of work."</b> [x from unemployed, y from NILF] These transitions are rough; with a little more work, we can make them more clearly indicate who goes into the out of work bucket and who doesn't.
+			</p> 
+		</div>	
+
+		<div style="width:80%; max-width:1920px;float:left">
+			<div id="dot-matrix3"></div>
+		</div>
+
+		<div style="width:20%;float:left";>
+			<div class="bar-chart">
+				<img src="build/wireframes/bar-chart-3.png" />
+			</div>
+		</div>
+	</div>
+
+
+	<div class="c-fix" style="margin-top:10em;">
+		<div class="reading">
+			<p style=""><b>View 4</b>: Transition to the <b>out of work only</b>, then to superclusters. We need to work on this transition (going from a small slice of the total pop 18-64 above to filling the entire area with superclusters)</p> 
+		</div>	
+
+		<div style="width:80%; max-width:1920px;float:left">
+			<div id="dot-matrix4"></div>
+		</div>
+
+		<div style="width:20%;float:left";>
+			<div class="bar-chart">
+				<img src="build/wireframes/bar-chart-3.png" />
+			</div>
+		</div>
+	</div>
+
+
+
+	<p>End</p>
+
 
 	<div class="reading" style="margin-top:5em;">
 		<p style="">Views 5 and 6: "The details" (no sketches yet).</p>
