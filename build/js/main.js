@@ -20,26 +20,35 @@ dir.local("./").add("data")
 //main out of work function to run on load
 function main(){
 
-	var dm1 = dot_matrix(document.getElementById("dot-matrix1"), 6);
-	var dm2 = dot_matrix(document.getElementById("dot-matrix2"), 6);
-	var dm3 = dot_matrix(document.getElementById("dot-matrix3"), 6);
-	var dm4 = dot_matrix(document.getElementById("dot-matrix4"), 6);
+	var dm1 = dot_matrix(document.getElementById("dot-matrix1"), 4);
+	var dm2 = dot_matrix(document.getElementById("dot-matrix2"), 4);
+	var dm3 = dot_matrix(document.getElementById("dot-matrix3"), 4);
+	var dm4 = dot_matrix(document.getElementById("dot-matrix4"), 4);
 
 	//add a view
-	var view1 = dm1.view()
-	var v1g1 = view1.group("Total pop aged 18-64", "tot", 100).init();
+	var view1 = dm1.dim().view()
+	view1.group("Total pop aged 18-64", "tot", 100)
+		 .bind()
+		 .next()
+		 .group("Employed, 18-64", "emp", 72, "#a6cee3", "tot")
+		 .group("Unemployed, 18-64", "unemp", 5, "#1f78b4", "tot")
+		 .group("Not in the labor force", "nilf", 23, "#b2df8a", "tot")
+		 .bind()
+		 ;
+
+	//group(name, id, num, color, merge_id)
+
+	return null;
 
 	//add a single group to the view, as well as three subgroups
-	var view2 = dm2.view();
+	var view2 = dm2.dim().view();
 	var v2g1 = view2.group("Total pop 18-64", "tot", 100)
-					 .subgroup("Employed, 18-64", "emp", 72, "#a6cee3")
-					 .subgroup("Unemployed, 18-64", "unemp", 5, "#1f78b4")
-					 .subgroup("Not in the labor force", "nilf", 23, "#b2df8a")
+
 					 .init()
 					 ;
 
 	//add a single group to the view, as well as three subgroups
-	var view3 = dm3.view();
+	var view3 = dm3.dim().view();
 	var v3g1 = view3.group("Employed, 18-64", "emp", 72, "#a6cee3")
 					.subgroup("Out of work", "oow", 0, "#0d73d6")
 					.subgroup("Not out of work", "noow", 72, "#999999")
@@ -58,15 +67,15 @@ function main(){
 	var scc = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6'];
 	var view4 = dm4.view();
 	var v4g1 = view4.group("Out of work, 18-64", "emp", 72, "666666")
-					.subgroup("Out of work", "oow", 10, scc[0])
-					.subgroup("Out of work", "oow", 20, scc[1])
-					.subgroup("Out of work", "oow", 18, scc[2])
-					.subgroup("Out of work", "oow", 22, scc[3])
-					.subgroup("Out of work", "oow", 40, scc[4])
-					.subgroup("Out of work", "oow", 12, scc[5])
-					.subgroup("Out of work", "oow", 3, scc[6])
-					.subgroup("Out of work", "oow", 1, scc[7])
-					.subgroup("Out of work", "oow", 10, scc[8])
+					.subgroup("Out of work", "oow1", 10, scc[0])
+					.subgroup("Out of work", "oow2", 20, scc[1])
+					.subgroup("Out of work", "oow3", 18, scc[2])
+					.subgroup("Out of work", "oow4", 22, scc[3])
+					.subgroup("Out of work", "oow5", 40, scc[4])
+					.subgroup("Out of work", "oow6", 12, scc[5])
+					.subgroup("Out of work", "oow7", 3, scc[6])
+					.subgroup("Out of work", "oow8", 1, scc[7])
+					.subgroup("Out of work", "oow9", 10, scc[8])
 					;
 		v4g1.subgroups.sum();
 
