@@ -10,13 +10,13 @@ export default function dot_matrix(container, dot_radius){
 
 	//private members
 	var wrap = d3.select(container).style("min-height","100px")
-								   .style("margin","0.5em 1em")
+								   .style("margin","0.5em 0em")
 								   .style("border-top","0px solid #dddddd")
 								   ;
 	var canwrap = wrap.append("div").style("margin","1em auto").style("position","relative");
 	//var svg = svgwrap.append("svg").style("overflow","visible").attr("width","100%").attr("height","100%");
-	var svg = canwrap.append("svg").attr("width","100%").attr("height","100%").style("posiiton","absolute");
-	var canvas = canwrap.append("canvas");
+	var svg = canwrap.append("svg").attr("width","100%").attr("height","100%").style("position","absolute");
+	var canvas = canwrap.append("canvas").style("position","relative");
 	var context = canvas.node().getContext("2d");
 
 	var pixels = 5000;
@@ -26,6 +26,7 @@ export default function dot_matrix(container, dot_radius){
 	var default_radius = arguments.length > 1 ? dot_radius : 4;
 	var radius = default_radius;
 	var pixel_pad = radius;
+	var bbox = (2*radius) + (2*pixel_pad);	
 
 	var flex_space = 150;
 
@@ -34,6 +35,9 @@ export default function dot_matrix(container, dot_radius){
 
 	var views = {};
 	var nviews = -1;
+
+	var lastbind;
+
 
 	//dm object
 	var dm = {};
@@ -55,7 +59,7 @@ export default function dot_matrix(container, dot_radius){
 		if(radius < 2){radius = 2}
 		pixel_pad = Math.round(radius/2.5);
 	
-		var bbox = (2*radius) + (2*pixel_pad);			
+		bbox = (2*radius) + (2*pixel_pad);			
 		
 		//set a width less flex_space
 		width = w - flex_space;
@@ -87,6 +91,18 @@ export default function dot_matrix(container, dot_radius){
 		return dm;
 	}
 
+	dm.responsive = function(){
+		window.addEventListener("resize", function(){
+			dm.dim();
+			//redraw last drawn view
+			if(!!lastbind){
+				lastbind.bind();
+			}	
+		});
+
+		return dm;
+	}
+
 
 	//register each view with the dot matrix and encapsuate view-specific variables
 	//to do - handle scroll events
@@ -106,49 +122,58 @@ export default function dot_matrix(container, dot_radius){
 				groups:[[]],
 				tot_people:0,
 				level:0,
+				prev_bind:"level0",
+				next_bind:"level0",
 				level_drawn:null
 			};
 
 			view.group = function(name, id, num, color, merge_id){
-				var g = {};
-				g.name = name;
-				g.id = id;
-				g.num = num;
-				g.col = arguments.length > 3 ? color : "#666666";
-				g.level = par.level;
+				var d = {};
+				d.name = name;
+				d.id = id;
+				d.merge_id = arguments.length > 4 ? merge_id : id;
+				d.num = num;
+				d.col = !!color ? color : "#666666";
+				d.level = par.level;
 
 				//create merge (data-join) variables based on the level
 				// ---A--- <--> ---B--- <--> ---C---
 				// [l] [r]      [l] [r]      [l] [r]
-				if(par.level==0){
-					g.left = "level0";
-					g.right = "level0";
-					g.level0 = id;
-				}
-				else{
-					g.left = "level"+(par.level-1);
-					g.right = "level"+par.level;
-					g[g.left] = arguments.length > 4 ? merge_id : id;
-					g[g.right] = id;
-				}
+				// prev_ and next_bind are updated in view.next / view.prev
 
-				g.order = par.groups[par.level].length;
-				par.groups[par.level].push(g);
+				d[par.prev_bind] = arguments.length > 4 ? merge_id : id;
+				d[par.next_bind] = id;
+
+				d.order = par.groups[par.level].length;
+				par.groups[par.level].push(d);
 
 				return view;
 			};
 
-			//bind current state to view and update view
+			var transition_duration = 3000;
+			var timer = d3.timer(function(elapsed) {
+				  var fraction = d3.easePolyOut(elapsed/transition_duration);	
+				  if(fraction >=1){
+				  	fraction = 1;
+				  	timer.stop();
+				  }
+				});
+
+			//bind current group data to view and update view
 			view.bind = function(){
+				lastbind = view;
 				
 				par.tot_people = d3.sum(par.groups[0], function(d){return d.num});
 
 				var groups = par.groups[par.level];
 				var group_sum = d3.sum(groups, function(d){return d.num});
 
-				//is this moving forward or backward
-				var forward = par.level_drawn == null || par.level - par.level_drawn >= 0;
+				//what merge_level to merge by depends on if it's forward or backward/staying the same
+				var forward = par.level_drawn == null || par.level - par.level_drawn > 0;
+				var merge_level = forward ? par.prev_bind : par.next_bind;
+				//console.log(merge_level);
 
+				//console.log(par.level_drawn + " | " + par.level);
 				//map groups to individual records in several steps:
 				// (1)
 				var g1 = groups.map(function(d,i,a){
@@ -184,20 +209,58 @@ export default function dot_matrix(container, dot_radius){
 				}
 
 				//create an array of group objects, 1 for each dot
-				var g2 = unlist(g1.map(function(grp){
-					var range = d3.range(0, grp.whole);
+				var g2 = unlist(g1.map(function(g){
+					var range = d3.range(0, g.whole);
 					return range.map(function(d){
 						var f = {};
-						f.i = d;
-						f.merge_level = forward ? grp.d.left : grp.d.right;
-						f.data = grp.d;
+						f.d = g.d;
 						return f;
 					});
 
-				}) );				
+				}) );
 
+				//make left/right (prev/next) merge values unique
+				var lefts = {};
+				var rights = {};
+
+				g2.sort(function(a,b){
+					var aval = a.d.id;
+					var bval = b.d.id;
+					var order0 = a.d.order - b.d.order;
+					var order1 = aval < bval ? -1 : (aval == bval ? 0 : 1);
+
+					return  order0 != 0 ? order0 : order1;
+				});
+
+				g2.forEach(function(f, n){
+
+					//level group code, e.g. tot or emp
+					var r = f.d[par.next_bind];
+					var l = f.d[par.prev_bind];
+
+					var rcount = rights.hasOwnProperty(r) ? rights[r]+1 : 0;
+					var lcount = lefts.hasOwnProperty(l) ? lefts[l]+1 : 0;
+
+					f[par.next_bind] = r + (rcount + "");
+					f[par.prev_bind] = l + (lcount + "");
+
+					rights[r] = rcount;
+					lefts[l] = lcount;
+
+					f.n = n;
+
+					var col = Math.floor(n/nrows);
+					var row = n - (nrows*col);
+					var x = (col*bbox);
+					var y = (row*bbox);
+
+					f.xy = [x+(bbox/2),y+(bbox/2)];
+					f.rxy = [x,y];
+
+				});
+
+				//console.log(g2);
 				
-
 				// diff < 0 implies the subgroups are less than the total should be
 				var diff = group_sum - par.tot_people;
 				try{
@@ -209,67 +272,153 @@ export default function dot_matrix(container, dot_radius){
 					//no-op
 				}
 
-				console.log(par.level);
-				console.log(g2);
+				var update = svg.selectAll("rect").data(g2, function(f){
+					return f[merge_level]
+				});
+
+				update.exit().remove(); //.transition().style("opacity",0).on("end", function(){d3.select(this).remove()})
+				var rects = update.enter().append("rect").merge(update);
+
+				var new_data = [];
+
+				rects.each(function(d,i,a){
+					var thiz = d3.select(this);
+					
+					var o = {}
+					var x = thiz.attr("data-oldx");
+					var y = thiz.attr("data-oldy");
+					var c = thiz.attr("data-oldc");
+
+					var x0 = x!=null ? +x : d.xy[0]; 
+					var y0 = y!=null ? +y : d.xy[1];
+					var col0 = c!=null ? c : "#ffffff";
+
+					try{
+						var x1 = d.xy[0];
+						var y1 = d.xy[1];
+						var col1 = d.d.col;
+					}
+					catch(e){
+						var x1 = 0;
+						var y1 = 0;
+						var col1 = "#cccccc";
+					}
+
+					var tx = function(share){return x0 + share*(x1-x0);}
+					var ty = function(share){return y0 + share*(y1-y0);}
+					var tc = d3.interpolateRgb(col0, col1);
+
+					new_data.push({xy:d.xy, tx:tx, ty:ty, tc:tc})
+				});
+
+				rects.attr("width", bbox).attr("height", bbox)
+					//.transition().duration(5000)
+					.attr("x", function(d,i){
+						return d.rxy[0];
+					})
+					.attr("y", function(d,i){
+						return d.rxy[1];
+					})
+					.attr("fill", function(d,i){
+						return d.d.col;
+					})
+					.style("visibility","hidden")
+					.attr("data-oldx", function(d){return d.xy[0]})
+					.attr("data-oldy", function(d){return d.xy[1]})
+					.attr("data-oldc", function(d){return d.d.col})
+					;
+
+				var counter = 0;
+				function draw(t){
+					context.clearRect(0, 0, width, height);
+					new_data.forEach(function(d){
+						var x = d.tx(t);
+						var y = d.ty(t);
+
+						context.moveTo(x + radius, y);
+						context.strokeStyle = "#ffffff";
+						context.fillStyle = d.tc(t);
+						context.beginPath();
+						context.arc(x, y, radius, 0, 2 * Math.PI);
+						//context.stroke();
+						context.fill();
+					});
+				}
+
+				timer.stop();
+
+				timer.restart(function(elapsed) {
+				  var fraction = d3.easeCubic(elapsed/transition_duration);	
+				  if(fraction >=1){
+				  	fraction = 1;
+				  	timer.stop();
+				  }
+				  draw(fraction);
+				});
+
 
 				//set the level drawn to indicate the view is up to date 
 				par.level_drawn = par.level;
 				return view;
-
-				///BIND TO SVG -- USE SELECTION TO DRAW TO CANVAS
-				/*LEFT OFF HERE*/
-
-				//merge by d[merge_level] + i i.e. group id + i
-
-					/*var col = Math.floor(n/nrows);
-					var row = n - (nrows*col);
-					var box2 = bbox/2;
-					var x = (col*bbox) + box2;
-					var y = (row*bbox) + box2;*/
-
-				context.clearRect(0, 0, width, height);
-
-				array.forEach(function(d){
-					context.moveTo(d.x + radius, d.y);
-					context.strokeStyle = d.fill;
-					context.fillStyle = d.fill;
-					context.beginPath();
-					context.arc(d.x, d.y, radius, 0, 2 * Math.PI);
-					//context.stroke();
-					context.fill();
-				});
-				////
-
-
-
-				
+		
 			}
 
-			//move to the next state
-			view.next = function(){
-				var next_level = par.level + 1;
+			function set_lr_bind(){
+				if(par.level==0){
+					par.prev_bind = "level0";
+					par.next_bind = "level0";
+				}
+				else{
+					par.prev_bind = "level" + (par.level-1);
+					par.next_bind = "level" + par.level;
+				}
+			}
+
+			//move to the next state or arbitrary level
+			view.next = function(level){
+				/*var next_level = par.level + 1;
 				var valid_move = par.level_drawn != null && 
 								 Math.abs(next_level-par.level_drawn) == 1 &&
 								 par.level < par.groups.length;
 				if(valid_move){
 					par.level += 1;
+					set_lr_bind();
+
 					if(par.level >= par.groups.length){
 						par.groups.push([]);
 					}
+				}*/
+
+				//don't enforce valid levels
+				if(arguments.length==0){
+					par.level = par.level + 1;
+					if(par.level >= par.groups.length){
+						par.groups.push([]);
+					}					
 				}
+				else if(level < par.groups.length){
+					par.level = level;
+				}
+				set_lr_bind();
 
 				return view;
 			}
 
 			//move to the previous state
 			view.prev = function(){
-				var next_level = par.level - 1;
+				/*var next_level = par.level - 1;
 				var valid_move = par.level_drawn != null && 
 								 Math.abs(next_level-par.level_drawn) == 1 &&
 								 par.level > 0;
 				if(valid_move){
 					par.level -= 1;
+					set_lr_bind()
+				}*/
+
+				if(par.level > 0){
+					par.level -= 1;
 				}
+				set_lr_bind();
 
 				return view;
 			}

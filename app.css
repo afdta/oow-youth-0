@@ -92,6 +92,13 @@ div.header-box{
   color:#ffffff;
 }
 
+.panel{
+  width:100%;
+  width:100vw;
+  height:700px;
+  height:100vh;
+}
+
 img{
   width:100%;
 }

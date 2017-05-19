@@ -9,10 +9,10 @@ import card from '../../../js-modules/card-api.js';
 import nameshort from '../../../js-modules/nameshort.js';
 import met_map from '../../../js-modules/met-map.js';
 import format from '../../../js-modules/formats.js';
-import waypoint from '../../../js-modules/on-scroll2.js';
 
 //out of work modules
 import dot_matrix from './dot-matrix.js';
+import scroll_show from './scroll-show.js';
 
 dir.local("./").add("data")
 //dir.add("data", "outof-work/data");
@@ -20,21 +20,71 @@ dir.local("./").add("data")
 //main out of work function to run on load
 function main(){
 
-	var dm1 = dot_matrix(document.getElementById("dot-matrix1"), 4);
-	var dm2 = dot_matrix(document.getElementById("dot-matrix2"), 4);
-	var dm3 = dot_matrix(document.getElementById("dot-matrix3"), 4);
-	var dm4 = dot_matrix(document.getElementById("dot-matrix4"), 4);
+	//scroll show 0
+	var ss0 = scroll_show(document.getElementById("view0-wrap"));
 
-	//add a view
-	var view1 = dm1.dim().view()
-	view1.group("Total pop aged 18-64", "tot", 100)
-		 .bind()
-		 .next()
-		 .group("Employed, 18-64", "emp", 72, "#a6cee3", "tot")
-		 .group("Unemployed, 18-64", "unemp", 5, "#1f78b4", "tot")
-		 .group("Not in the labor force", "nilf", 23, "#b2df8a", "tot")
-		 .bind()
-		 ;
+	//add panels to scroll show -- the first panel is fixed and contains the dot matrix
+	var panel_00 = ss0.panel();
+	var panel_01 = ss0.panel();
+	var panel_02 = ss0.panel();
+
+	
+	
+	//dot matrix to first panel
+	var dm0 = dot_matrix(panel_00.node, 5);
+
+	//scroll show 1
+	var ss1 = scroll_show(document.getElementById("view1-wrap"));
+	var panel_10 = ss1.panel();
+	var dm1 = dot_matrix(panel_10.node, 5);
+	
+	//colors
+	var scc = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6'];
+
+	//base view
+	var view0 = dm0.dim().responsive().view();
+		view0.group("Total pop aged 25-64", "tot", 100)
+				 .next()
+				 .group("Unemployed, 25-64", "unemp", 5, "red", "tot")
+				 .group("Not in the labor force, 25-64", "nilf", 23, "pink", "tot")
+				 .group("Employed, 25-64", "emp", 72, "#666666", "tot")
+					 .next()
+					 .group("Out of work, 18-64", "oow", 4.5, "red", "unemp")
+					 .group("Out of work, 18-64", "oow", 9.2, "red", "nilf")
+					 .group("Other", "other", 0.5, "#666666", "unemp")
+					 .group("Other", "other", 13.8, "#666666", "nilf")
+					 .group("Other", "other", 72, "#666666", "emp")
+			
+	var view1 = dm1.dim().responsive().view();		 	
+		view1.group("Median age: 30, Low education", "oow1", 10, scc[0], "oow")
+			.group("Median age: 44, Low education", "oow2", 37, scc[1], "oow")
+			.group("Median age: 58, Low education", "oow3", 7, scc[2], "oow")
+			.group("Median age: 33, Moderate education", "oow4", 14, scc[3], "oow")
+			.group("Median age: 55, Moderate education", "oow5", 12, scc[4], "oow")
+			.group("Median age: 34, High education", "oow6", 9, scc[5], "oow")
+			.group("Median age: 56, High education", "oow7", 11, scc[6], "oow")
+		 	;
+
+	//add a single group to the view, as well as three subgroups
+	panel_00.activate(function(){
+		view0.next(0).bind(); //draw level 0	
+	})
+				 
+	//next view is bound to panel_01
+	panel_01.activate(function(){
+		view0.next(1).bind(); //draw level 1		
+	})
+
+	//next view is bound to panel_02
+	panel_02.activate(function(){
+		view0.next(2).bind(); //draw level 2	
+	});
+
+	//next view is bound to panel_03
+	panel_10.activate(function(){
+		view1.next(0).bind(); //draw level 2	
+	});
+
 
 	//group(name, id, num, color, merge_id)
 

@@ -21,7 +21,7 @@
 
 <script src="app.js" type="text/javascript"></script>
 
-<div class="metro-interactive">
+<div class="metro-interactive" id="out-of-work">
 
 	<div class="reading">
 		<p style="margin:1em 0em;">Out of work sketches<br />May 9, 2017</p>
@@ -31,27 +31,39 @@
 		<p class="header"><b>The out of work population</b> <br />Who are they? How can policymakers and practitioners serve them best?</p>
 	</div>
 
-	<div class="c-fix">
-		<div class="reading">
-			<p style="">
-				<span><b>View 1</b>: In the U.S. [OR SELECT JURISDICTION], there are xxx,xxx people between the ages of 18–64. <br/>In this graphic, 1 dot (</span>
-				<span class="divdot"></span> 
-				<span>) = XX people.</span>
-			</p> 
-		</div>	
+	<div class="c-fix" id="view0-wrap" style="width:100%"></div>
+	<div class="c-fix" id="view1-wrap" style="width:100%"></div>
+</div>
 
-		<div style="width:80%; max-width:1920px;float:left">
-			<div id="dot-matrix1"></div>
-		</div>
+<div>
 
-		<div style="width:20%;float:left";>
-			<div class="bar-chart">
-				<img src="build/wireframes/bar-chart-1.png" />
+<div style="width:100px;height:1000px"></div>
+
+<!--
+	<p>End</p>
+
+		<div class="c-fix" style="width:100%">
+			<div class="reading">
+				<p style="">
+					<span><b>View 1</b>: In the U.S. [OR SELECT JURISDICTION], there are xxx,xxx people between the ages of 18–64. <br/>In this graphic, 1 dot (</span>
+					<span class="divdot"></span> 
+					<span>) = XX people.</span>
+				</p> 
+			</div>	
+
+			<div style="width:80%; max-width:1920px;float:left">
+				<div id="dot-matrix1"></div>
+			</div>
+
+			<div style="width:20%;float:left";>
+				<div class="bar-chart">
+					<img src="build/wireframes/bar-chart-1.png" />
+				</div>
 			</div>
 		</div>
-	</div>
+	</div>	
 
-	<div class="c-fix" style="margin-top:10em;">
+		<div class="c-fix" style="margin-top:10em;">
 		<div class="reading">
 			<p style="">
 				<span><b>View 2</b>: Each person in this population is either <b>employed</b>, <b>unemployed</b>, or <b>not in labor force</b>. 
@@ -105,10 +117,6 @@
 	</div>
 
 
-
-	<p>End</p>
-
-
 	<div class="reading" style="margin-top:5em;">
 		<p style="">Views 5 and 6: "The details" (no sketches yet).</p>
 		<p>View 5: subdivide the dot grid into individual clusters (15 of these). This will require some experimentation because this is a lot of detail. An alternative to the dot grid used throughout this sketch is "<a href="https://bl.ocks.org/mbostock/7607535" target="_blank">circle packing</a>" which is a useful alternative to explore.</p> 
@@ -151,7 +159,7 @@
 			<li>How do we handle the two primary age group divisions (18-24 and 25-64)?</li>
 		</ol>
 	</div>
-	
+	-->
 </div>
 
 </body>

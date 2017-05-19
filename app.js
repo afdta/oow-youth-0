@@ -178,152 +178,6 @@ format.fn0 = function(fmt){
 
 //-------------------------------------------------{5}
 
-//v2.0 developed for metro monitor
-//revised to be more modular - each event gets a window event listener, rather than a collection
-//the user registers scroll and activate listeners separately, scroll methods will not execute if there is an activation method yet to run
-
-//events: activate and scroll 
-
-//to do: address edge case where asynchronous load pushes unactivated element into view. no scroll takes place to activate it
-//consider appending a note to each container element, but should we change positioning of parent element?
-
-//scroll collection constructor
-function onScroll(element){
-	if(arguments.length > 0){
-		this.element = element;
-	}
-	this.on_activate = null;
-	this.on_scroll = null;
-
-	this.activated = false;
-
-	//determines activation zone. the default, 0.2, implies the middle 60% of the page is the "activation zone" 
-	//the activate method will not be called when the top of element is 
-	this.top_bot_buffer = 0.2;
-
-	var self = this;
-	var decorated_scroll_listener = function(){
-		self.scroll_listener();
-
-		//remove the scroll event if it is no longer necessary
-		try{
-			if(self.on_scroll === null && self.activated){
-				window.removeEventListener("scroll", decorated_scroll_listener);
-			}
-		}
-		catch(e){
-			//ho-op
-		}
-	};
-
-	//attach scroll listener with setTimeout 0 so that synchronous code, like registering activate/viewing listeners can execute first
-	setTimeout(function(){
-		window.addEventListener("scroll", decorated_scroll_listener);
-	}, 0);
-}
-
-onScroll.prototype.buffer = function(buffer){
-	if(arguments.length > 0){
-		this.top_bot_buffer = buffer;
-		return this;
-	}
-	else{
-		return this.top_bot_buffer;
-	}
-};
-
-onScroll.prototype.element = function(element){
-	if(arguments.length > 0){
-		this.element = element;
-		return this;
-	}
-	else{
-		return this.element;
-	}
-};
-
-onScroll.prototype.get_box = function(){
-	try{
-		var box = this.element.getBoundingClientRect();
-
-		var top = box.top;
-		var bottom = box.bottom;
-		var middle = top + ((bottom-top)/2);
-
-		var pos = {top:top, middle:middle, bottom:bottom};
-	}
-	catch(e){
-		var pos = null;
-	}
-	return pos;
-};
-
-//register activation function
-onScroll.prototype.activate = function(fn){
-	if(arguments.length > 0){
-		this.on_activate = fn;
-			var self = this;
-			setTimeout(function(){self.scroll_listener();}, 0); //try to immediately activate
-		return this;
-	}
-	else{
-		return this.on_activate;
-	}
-};
-
-//register scrolling function
-onScroll.prototype.scroll = function(fn, call_when_out_of_view){
-	if(arguments.length > 0){
-		this.on_scroll = fn;
-		this.call_scroll_when_out_of_view = !!call_when_out_of_view;
-		return this;
-	}
-	else{
-		return this.on_scroll;
-	}
-};
-onScroll.prototype.scrolling = onScroll.prototype.scroll;
-
-onScroll.prototype.scroll_listener = function(){
-	var box = this.get_box();
-	var window_height = Math.max(document.documentElement.clientHeight, (window.innerHeight || 0));
-	
-	//first, attempt to execute activate method, then scroll method--never at the same time
-	if(!this.activated && this.on_activate !== null){
-		if(box==null || window_height==0){
-			this.on_activate({top:0, middle:0, bottom:0}, window_height);
-			this.activated = true;
-		}
-		else{
-			var activate_zone = [window_height*this.top_bot_buffer, window_height*(1-this.top_bot_buffer)];	
-			if(!(box.bottom < activate_zone[0] || box.top > activate_zone[1]) ){
-				//console.log(box);
-				this.on_activate(box, window_height);
-				this.activated = true;
-			}
-		}
-	}
-	else if((this.on_scroll !== null) && !(box.bottom < 0 || box.top > window_height)){
-		this.on_scroll(box, window_height);
-	}
-	else if((this.on_scroll !== null) && this.call_scroll_when_out_of_view){
-		this.on_scroll(null, window_height);		
-	}
-};
-
-//simulate a croll event
-onScroll.prototype.tick = function(duration){
-	var self = this;
-	var dur = arguments.length > 0 ? duration : 0;
-	setTimeout(function(){self.scroll_listener();},0);
-	return this;
-};
-
-function waypoint(element){
-	var os = new onScroll(element);
-	return os;
-}
-
 //Array.isArray polyfill. Credit: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray?v=control
 if (!Array.isArray) {
   Array.isArray = function(arg) {
@@ -363,12 +217,12 @@ function dot_matrix(container, dot_radius){
 
 	//private members
 	var wrap = d3.select(container).style("min-height","100px")
-								   .style("margin","0.5em 1em")
+								   .style("margin","0.5em 0em")
 								   .style("border-top","0px solid #dddddd");
 	var canwrap = wrap.append("div").style("margin","1em auto").style("position","relative");
 	//var svg = svgwrap.append("svg").style("overflow","visible").attr("width","100%").attr("height","100%");
-	var svg = canwrap.append("svg").attr("width","100%").attr("height","100%").style("posiiton","absolute");
-	var canvas = canwrap.append("canvas");
+	var svg = canwrap.append("svg").attr("width","100%").attr("height","100%").style("position","absolute");
+	var canvas = canwrap.append("canvas").style("position","relative");
 	var context = canvas.node().getContext("2d");
 
 	var pixels = 5000;
@@ -378,6 +232,7 @@ function dot_matrix(container, dot_radius){
 	var default_radius = arguments.length > 1 ? dot_radius : 4;
 	var radius = default_radius;
 	var pixel_pad = radius;
+	var bbox = (2*radius) + (2*pixel_pad);	
 
 	var flex_space = 150;
 
@@ -386,6 +241,9 @@ function dot_matrix(container, dot_radius){
 
 	var views = {};
 	var nviews = -1;
+
+	var lastbind;
+
 
 	//dm object
 	var dm = {};
@@ -407,7 +265,7 @@ function dot_matrix(container, dot_radius){
 		if(radius < 2){radius = 2;}
 		pixel_pad = Math.round(radius/2.5);
 	
-		var bbox = (2*radius) + (2*pixel_pad);			
+		bbox = (2*radius) + (2*pixel_pad);			
 		
 		//set a width less flex_space
 		width = w - flex_space;
@@ -439,6 +297,18 @@ function dot_matrix(container, dot_radius){
 		return dm;
 	};
 
+	dm.responsive = function(){
+		window.addEventListener("resize", function(){
+			dm.dim();
+			//redraw last drawn view
+			if(!!lastbind){
+				lastbind.bind();
+			}	
+		});
+
+		return dm;
+	};
+
 
 	//register each view with the dot matrix and encapsuate view-specific variables
 	//to do - handle scroll events
@@ -458,49 +328,58 @@ function dot_matrix(container, dot_radius){
 				groups:[[]],
 				tot_people:0,
 				level:0,
+				prev_bind:"level0",
+				next_bind:"level0",
 				level_drawn:null
 			};
 
 			view.group = function(name, id, num, color, merge_id){
-				var g = {};
-				g.name = name;
-				g.id = id;
-				g.num = num;
-				g.col = arguments.length > 3 ? color : "#666666";
-				g.level = par.level;
+				var d = {};
+				d.name = name;
+				d.id = id;
+				d.merge_id = arguments.length > 4 ? merge_id : id;
+				d.num = num;
+				d.col = !!color ? color : "#666666";
+				d.level = par.level;
 
 				//create merge (data-join) variables based on the level
 				// ---A--- <--> ---B--- <--> ---C---
 				// [l] [r]      [l] [r]      [l] [r]
-				if(par.level==0){
-					g.left = "level0";
-					g.right = "level0";
-					g.level0 = id;
-				}
-				else{
-					g.left = "level"+(par.level-1);
-					g.right = "level"+par.level;
-					g[g.left] = arguments.length > 4 ? merge_id : id;
-					g[g.right] = id;
-				}
+				// prev_ and next_bind are updated in view.next / view.prev
 
-				g.order = par.groups[par.level].length;
-				par.groups[par.level].push(g);
+				d[par.prev_bind] = arguments.length > 4 ? merge_id : id;
+				d[par.next_bind] = id;
+
+				d.order = par.groups[par.level].length;
+				par.groups[par.level].push(d);
 
 				return view;
 			};
 
-			//bind current state to view and update view
+			var transition_duration = 3000;
+			var timer = d3.timer(function(elapsed) {
+				  var fraction = d3.easePolyOut(elapsed/transition_duration);	
+				  if(fraction >=1){
+				  	fraction = 1;
+				  	timer.stop();
+				  }
+				});
+
+			//bind current group data to view and update view
 			view.bind = function(){
+				lastbind = view;
 				
 				par.tot_people = d3.sum(par.groups[0], function(d){return d.num});
 
 				var groups = par.groups[par.level];
 				var group_sum = d3.sum(groups, function(d){return d.num});
 
-				//is this moving forward or backward
-				var forward = par.level_drawn == null || par.level - par.level_drawn >= 0;
+				//what merge_level to merge by depends on if it's forward or backward/staying the same
+				var forward = par.level_drawn == null || par.level - par.level_drawn > 0;
+				var merge_level = forward ? par.prev_bind : par.next_bind;
+				//console.log(merge_level);
 
+				//console.log(par.level_drawn + " | " + par.level);
 				//map groups to individual records in several steps:
 				// (1)
 				var g1 = groups.map(function(d,i,a){
@@ -536,20 +415,58 @@ function dot_matrix(container, dot_radius){
 				}
 
 				//create an array of group objects, 1 for each dot
-				var g2 = unlist(g1.map(function(grp){
-					var range = d3.range(0, grp.whole);
+				var g2 = unlist(g1.map(function(g){
+					var range = d3.range(0, g.whole);
 					return range.map(function(d){
 						var f = {};
-						f.i = d;
-						f.merge_level = forward ? grp.d.left : grp.d.right;
-						f.data = grp.d;
+						f.d = g.d;
 						return f;
 					});
 
-				}) );				
+				}) );
 
+				//make left/right (prev/next) merge values unique
+				var lefts = {};
+				var rights = {};
+
+				g2.sort(function(a,b){
+					var aval = a.d.id;
+					var bval = b.d.id;
+					var order0 = a.d.order - b.d.order;
+					var order1 = aval < bval ? -1 : (aval == bval ? 0 : 1);
+
+					return  order0 != 0 ? order0 : order1;
+				});
+
+				g2.forEach(function(f, n){
+
+					//level group code, e.g. tot or emp
+					var r = f.d[par.next_bind];
+					var l = f.d[par.prev_bind];
+
+					var rcount = rights.hasOwnProperty(r) ? rights[r]+1 : 0;
+					var lcount = lefts.hasOwnProperty(l) ? lefts[l]+1 : 0;
+
+					f[par.next_bind] = r + (rcount + "");
+					f[par.prev_bind] = l + (lcount + "");
+
+					rights[r] = rcount;
+					lefts[l] = lcount;
+
+					f.n = n;
+
+					var col = Math.floor(n/nrows);
+					var row = n - (nrows*col);
+					var x = (col*bbox);
+					var y = (row*bbox);
+
+					f.xy = [x+(bbox/2),y+(bbox/2)];
+					f.rxy = [x,y];
+
+				});
+
+				//console.log(g2);
 				
-
 				// diff < 0 implies the subgroups are less than the total should be
 				var diff = group_sum - par.tot_people;
 				try{
@@ -561,65 +478,153 @@ function dot_matrix(container, dot_radius){
 					//no-op
 				}
 
-				console.log(par.level);
-				console.log(g2);
+				var update = svg.selectAll("rect").data(g2, function(f){
+					return f[merge_level]
+				});
+
+				update.exit().remove(); //.transition().style("opacity",0).on("end", function(){d3.select(this).remove()})
+				var rects = update.enter().append("rect").merge(update);
+
+				var new_data = [];
+
+				rects.each(function(d,i,a){
+					var thiz = d3.select(this);
+					
+					var o = {};
+					var x = thiz.attr("data-oldx");
+					var y = thiz.attr("data-oldy");
+					var c = thiz.attr("data-oldc");
+
+					var x0 = x!=null ? +x : d.xy[0]; 
+					var y0 = y!=null ? +y : d.xy[1];
+					var col0 = c!=null ? c : "#ffffff";
+
+					try{
+						var x1 = d.xy[0];
+						var y1 = d.xy[1];
+						var col1 = d.d.col;
+					}
+					catch(e){
+						var x1 = 0;
+						var y1 = 0;
+						var col1 = "#cccccc";
+					}
+
+					var tx = function(share){return x0 + share*(x1-x0);};
+					var ty = function(share){return y0 + share*(y1-y0);};
+					var tc = d3.interpolateRgb(col0, col1);
+
+					new_data.push({xy:d.xy, tx:tx, ty:ty, tc:tc});
+				});
+
+				rects.attr("width", bbox).attr("height", bbox)
+					//.transition().duration(5000)
+					.attr("x", function(d,i){
+						return d.rxy[0];
+					})
+					.attr("y", function(d,i){
+						return d.rxy[1];
+					})
+					.attr("fill", function(d,i){
+						return d.d.col;
+					})
+					.style("visibility","hidden")
+					.attr("data-oldx", function(d){return d.xy[0]})
+					.attr("data-oldy", function(d){return d.xy[1]})
+					.attr("data-oldc", function(d){return d.d.col})
+					;
+
+				var counter = 0;
+				function draw(t){
+					context.clearRect(0, 0, width, height);
+					new_data.forEach(function(d){
+						var x = d.tx(t);
+						var y = d.ty(t);
+
+						context.moveTo(x + radius, y);
+						context.strokeStyle = "#ffffff";
+						context.fillStyle = d.tc(t);
+						context.beginPath();
+						context.arc(x, y, radius, 0, 2 * Math.PI);
+						//context.stroke();
+						context.fill();
+					});
+				}
+
+				timer.stop();
+
+				timer.restart(function(elapsed) {
+				  var fraction = d3.easeCubic(elapsed/transition_duration);	
+				  if(fraction >=1){
+				  	fraction = 1;
+				  	timer.stop();
+				  }
+				  draw(fraction);
+				});
+
 
 				//set the level drawn to indicate the view is up to date 
 				par.level_drawn = par.level;
 				return view;
-
-				///BIND TO SVG -- USE SELECTION TO DRAW TO CANVAS
-				/*LEFT OFF HERE*/
-
-					/*var col = Math.floor(n/nrows);
-					var row = n - (nrows*col);
-					var box2 = bbox/2;
-					var x = (col*bbox) + box2;
-					var y = (row*bbox) + box2;*/
-
-				context.clearRect(0, 0, width, height);
-
-				array.forEach(function(d){
-					context.moveTo(d.x + radius, d.y);
-					context.strokeStyle = d.fill;
-					context.fillStyle = d.fill;
-					context.beginPath();
-					context.arc(d.x, d.y, radius, 0, 2 * Math.PI);
-					//context.stroke();
-					context.fill();
-				});
-				////
-
-
-
-				
+		
 			};
 
-			//move to the next state
-			view.next = function(){
-				var next_level = par.level + 1;
+			function set_lr_bind(){
+				if(par.level==0){
+					par.prev_bind = "level0";
+					par.next_bind = "level0";
+				}
+				else{
+					par.prev_bind = "level" + (par.level-1);
+					par.next_bind = "level" + par.level;
+				}
+			}
+
+			//move to the next state or arbitrary level
+			view.next = function(level){
+				/*var next_level = par.level + 1;
 				var valid_move = par.level_drawn != null && 
 								 Math.abs(next_level-par.level_drawn) == 1 &&
 								 par.level < par.groups.length;
 				if(valid_move){
 					par.level += 1;
+					set_lr_bind();
+
 					if(par.level >= par.groups.length){
 						par.groups.push([]);
 					}
+				}*/
+
+				//don't enforce valid levels
+				if(arguments.length==0){
+					par.level = par.level + 1;
+					if(par.level >= par.groups.length){
+						par.groups.push([]);
+					}					
 				}
+				else if(level < par.groups.length){
+					par.level = level;
+				}
+				set_lr_bind();
 
 				return view;
 			};
 
 			//move to the previous state
 			view.prev = function(){
-				var next_level = par.level - 1;
+				/*var next_level = par.level - 1;
 				var valid_move = par.level_drawn != null && 
 								 Math.abs(next_level-par.level_drawn) == 1 &&
 								 par.level > 0;
 				if(valid_move){
 					par.level -= 1;
+					set_lr_bind()
+				}*/
+
+				if(par.level > 0){
+					par.level -= 1;
 				}
+				set_lr_bind();
 
 				return view;
 			};
@@ -663,6 +668,324 @@ function dot_matrix(container, dot_radius){
 	return dm;
 }
 
+//v2.0 developed for metro monitor
+//revised to be more modular - each event gets a window event listener, rather than a collection
+//the user registers scroll and activate listeners separately, scroll methods will not execute if there is an activation method yet to run
+
+//events: activate and scroll 
+
+//to do: address edge case where asynchronous load pushes unactivated element into view. no scroll takes place to activate it
+//consider appending a note to each container element, but should we change positioning of parent element?
+
+//scroll collection constructor
+function onScroll(element){
+	if(arguments.length > 0){
+		this.element = element;
+	}
+	this.on_activate = null;
+	this.on_scroll = null;
+
+	this.activated = false;
+
+	//determines activation zone. the default, 0.2, implies the middle 60% of the page is the "activation zone" 
+	//the activate method will not be called when the top of element is 
+	this.top_buffer = 0.2;
+	this.bot_buffer = 0.2;
+
+	var self = this;
+	var decorated_scroll_listener = function(){
+		self.scroll_listener();
+
+		//remove the scroll event if it is no longer necessary
+		/*try{
+			if(self.on_scroll === null && self.activated){
+				window.removeEventListener("scroll", decorated_scroll_listener);
+			}
+		}
+		catch(e){
+			//ho-op
+		}*/
+	};
+
+	//attach scroll listener with setTimeout 0 so that synchronous code, like registering activate/viewing listeners can execute first
+	setTimeout(function(){
+		window.addEventListener("scroll", decorated_scroll_listener);
+	}, 0);
+}
+
+onScroll.prototype.buffer = function(top_buffer, bot_buffer){
+	if(arguments.length==0){
+		return [this.top_buffer, this.bot_buffer];
+	}
+	else if(arguments.length==1){
+		this.top_buffer = top_buffer;
+		this.bot_buffer = top_buffer;
+		return this;
+	}	
+	else{
+		this.top_buffer = top_buffer;
+		this.bot_buffer = bot_buffer;
+		return this;
+	}
+
+};
+
+onScroll.prototype.element = function(element){
+	if(arguments.length > 0){
+		this.element = element;
+		return this;
+	}
+	else{
+		return this.element;
+	}
+};
+
+onScroll.prototype.get_box = function(){
+	try{
+		var box = this.element.getBoundingClientRect();
+
+		var top = box.top;
+		var bottom = box.bottom;
+		var middle = top + ((bottom-top)/2);
+
+		var pos = {top:top, middle:middle, bottom:bottom};
+	}
+	catch(e){
+		var pos = null;
+	}
+	return pos;
+};
+
+//register activation function
+onScroll.prototype.activate = function(fn, reactivate_when_in_view){
+	this.reactivate_when_in_view = !!reactivate_when_in_view;
+	if(arguments.length > 0){
+		this.on_activate = fn;
+			var self = this;
+			setTimeout(function(){self.scroll_listener();}, 0); //try to immediately activate
+		return this;
+	}
+	else{
+		return this.on_activate;
+	}
+};
+
+//register scrolling function
+onScroll.prototype.scroll = function(fn){
+	if(arguments.length > 0){
+		this.on_scroll = fn;
+		return this;
+	}
+	else{
+		return this.on_scroll;
+	}
+};
+onScroll.prototype.scrolling = onScroll.prototype.scroll;
+
+onScroll.prototype.scroll_listener = function(){
+	var box = this.get_box();
+	var window_height = Math.max(document.documentElement.clientHeight, (window.innerHeight || 0));
+
+	var activate_zone = [window_height*this.top_buffer, window_height*(1-this.bot_buffer)];	
+	var in_activate_zone = !(box.bottom < activate_zone[0] || box.top > activate_zone[1]);
+	
+	//first, attempt to execute activate method, then scroll method--never at the same time
+	if(!this.activated && this.on_activate !== null){
+		if(box==null || window_height==0){
+			this.on_activate({top:0, middle:0, bottom:0}, window_height);
+			this.activated = true;
+		}
+		else if(in_activate_zone){
+			this.on_activate(box, window_height);
+			this.activated = true;
+		}
+	}
+	else if(this.on_scroll !== null && in_activate_zone){
+		this.on_scroll(box, window_height);
+	}
+
+	if(!in_activate_zone && this.activated && this.reactivate_when_in_view){
+		this.activated = false;
+	}
+
+};
+
+//simulate a croll event
+onScroll.prototype.tick = function(duration){
+	var self = this;
+	var dur = arguments.length > 0 ? duration : 0;
+	setTimeout(function(){self.scroll_listener();},0);
+	return this;
+};
+
+function waypoint$1(element){
+	var os = new onScroll(element);
+	return os;
+}
+
+function scroll_show(container_node){
+	var O = {};
+
+	//track the header: 0-default, 1-fixed, 2-absolute
+	var position = 0;
+	var pos_change_callback = null;
+
+	var height = 91;
+	
+	var wrap_outer = d3.select(container_node).style("width","100%");
+	var wrap = wrap_outer.append("div").style("width","100%").style("position","relative");
+
+	var fixedPanel = null;
+
+	O.panel = function(){
+		var wp = null;
+		var panel_outer = wrap.append("div")
+							 .classed("c-fix",true)
+							 .style("height","100%")
+							 .style("max-height","100vh")
+							 .style("min-height","90vh")
+							 .style("width","100%")
+							 .style("position",null)
+							 .style("z-index","1");
+
+		var panel = panel_outer.append("div").style("width","100%").style("height","auto");
+
+		if(fixedPanel===null){
+			//first panel is the fixed one
+			fixedPanel = panel;
+			afix(panel_outer, panel);
+		}
+
+		var wp = waypoint$1(panel_outer.node()).buffer(0.5);
+		var p = {};
+
+		p.init = function(fn){
+			fn.call(panel);
+			return p;
+		};
+
+		p.activate = function(fn, reactivate_when_in_view){
+			reactivate_when_in_view = true;
+			wp.activate(function(box, window_height){
+				fn.call(panel, box, window_height);
+			}, reactivate_when_in_view);
+			return p;
+		};
+
+		p.scroll = function(fn){
+			wp.scroll(function(box, window_height){
+				fn.call(panel, box, window_height);
+			});
+			return p;
+		};
+
+		p.wrap = panel_outer;
+		p.panel = panel;
+		p.node = panel.node();
+
+		return p;
+	};
+
+	//scroll event handler
+	function afix(outer_panel, inner_panel, top_pad){
+
+		var parent = wrap.node(); //parent is the div that holds the panels
+		var container = outer_panel.node();
+		var inner = inner_panel;
+
+		outer_panel.style("z-index","2");
+		wrap.classed("panel-wrap",true);
+
+		var top_pad = arguments.length > 2 ? top_pad : 50;
+
+		function pos(){
+			var window_height = Math.max(document.documentElement.clientHeight, (window.innerHeight || 0));
+
+			try{
+				var rect = container.getBoundingClientRect();
+				var height_fixed = rect.bottom - rect.top;
+
+				var past_bottom = (!!parent && parent.getBoundingClientRect().bottom < window_height-height_fixed-top_pad) ? true : false;
+				if(rect.top < 0 && !past_bottom){
+					if(position !== 1){
+						inner.interrupt()
+							 .style("position","fixed")
+							 //.style("bottom", (-height_fixed+"px"))
+							 //.style("height", height_fixed+"px")
+							 //.style("background-color",null)
+							 .style("left","0px")
+							 .style("top","0")
+							 //.style("width","100%")
+							 .transition()
+							 .duration(400)
+							 .style("top",top_pad+"px")
+							 //.style("bottom","-1px")
+							 //.on("end", function(d,i){
+							 	//force repaint. sometime transition results in a 1px gap
+							 //	inner.style("bottom","-1px").style("display","block");
+							 //})
+							 ;
+						position = 1;
+						if(!!pos_change_callback){
+							pos_change_callback(1);
+						}
+					}
+				}
+				else if(rect.top < 0 && past_bottom){
+					if(position !== 2){
+						inner.interrupt()
+							 .transition()
+							 .duration(0)
+							 .style("position","absolute")
+							 //.style("bottom","auto")
+							 //.style("height",height+"px")
+							 //.style("background-color",background_color)
+							 .style("top","calc(100% + 2em)")
+							 .style("left","0px")
+							 //.style("width","100%")
+							 ;
+						position = 2;
+						if(!!pos_change_callback){
+							pos_change_callback(2);
+						}
+					}
+				}
+				else{
+					inner.interrupt().transition().duration(0)
+							 .style("position","relative")
+							 //.style("width","auto")
+							 //.style("height",height+"px")
+							 //.style("background-color",background_color)
+							 .style("top",null)
+							 //.style("bottom","auto")
+							 ;
+					position = 0;
+					if(!!pos_change_callback){
+						pos_change_callback(0);
+					}
+				}
+			}
+			catch(e){
+				console.log(e);
+				if(!!inner){
+					inner.style("position","relative");//.style("width","auto");
+				}
+			}
+		}
+
+		window.addEventListener("scroll", pos);
+		window.addEventListener("resize", pos);
+
+		//set up in next tick
+		setTimeout(function(){pos();}, 0);
+
+		//insurance
+		setTimeout(function(){pos();}, 3000);
+	}
+
+	return O;
+}
+
 //"out of work" population project, june 2017
 //add browser compat message: test for svg, array.filter and map
 
@@ -675,21 +998,71 @@ dir.local("./").add("data");
 //main out of work function to run on load
 function main(){
 
-	var dm1 = dot_matrix(document.getElementById("dot-matrix1"), 4);
-	var dm2 = dot_matrix(document.getElementById("dot-matrix2"), 4);
-	var dm3 = dot_matrix(document.getElementById("dot-matrix3"), 4);
-	var dm4 = dot_matrix(document.getElementById("dot-matrix4"), 4);
+	//scroll show 0
+	var ss0 = scroll_show(document.getElementById("view0-wrap"));
 
-	//add a view
-	var view1 = dm1.dim().view();
-	view1.group("Total pop aged 18-64", "tot", 100)
-		 .bind()
-		 .next()
-		 .group("Employed, 18-64", "emp", 72, "#a6cee3", "tot")
-		 .group("Unemployed, 18-64", "unemp", 5, "#1f78b4", "tot")
-		 .group("Not in the labor force", "nilf", 23, "#b2df8a", "tot")
-		 .bind()
-		 ;
+	//add panels to scroll show -- the first panel is fixed and contains the dot matrix
+	var panel_00 = ss0.panel();
+	var panel_01 = ss0.panel();
+	var panel_02 = ss0.panel();
+
+	
+	
+	//dot matrix to first panel
+	var dm0 = dot_matrix(panel_00.node, 5);
+
+	//scroll show 1
+	var ss1 = scroll_show(document.getElementById("view1-wrap"));
+	var panel_10 = ss1.panel();
+	var dm1 = dot_matrix(panel_10.node, 5);
+	
+	//colors
+	var scc = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6'];
+
+	//base view
+	var view0 = dm0.dim().responsive().view();
+		view0.group("Total pop aged 25-64", "tot", 100)
+				 .next()
+				 .group("Unemployed, 25-64", "unemp", 5, "red", "tot")
+				 .group("Not in the labor force, 25-64", "nilf", 23, "pink", "tot")
+				 .group("Employed, 25-64", "emp", 72, "#666666", "tot")
+					 .next()
+					 .group("Out of work, 18-64", "oow", 4.5, "red", "unemp")
+					 .group("Out of work, 18-64", "oow", 9.2, "red", "nilf")
+					 .group("Other", "other", 0.5, "#666666", "unemp")
+					 .group("Other", "other", 13.8, "#666666", "nilf")
+					 .group("Other", "other", 72, "#666666", "emp");
+			
+	var view1 = dm1.dim().responsive().view();		 	
+		view1.group("Median age: 30, Low education", "oow1", 10, scc[0], "oow")
+			.group("Median age: 44, Low education", "oow2", 37, scc[1], "oow")
+			.group("Median age: 58, Low education", "oow3", 7, scc[2], "oow")
+			.group("Median age: 33, Moderate education", "oow4", 14, scc[3], "oow")
+			.group("Median age: 55, Moderate education", "oow5", 12, scc[4], "oow")
+			.group("Median age: 34, High education", "oow6", 9, scc[5], "oow")
+			.group("Median age: 56, High education", "oow7", 11, scc[6], "oow")
+		 	;
+
+	//add a single group to the view, as well as three subgroups
+	panel_00.activate(function(){
+		view0.next(0).bind(); //draw level 0	
+	});
+				 
+	//next view is bound to panel_01
+	panel_01.activate(function(){
+		view0.next(1).bind(); //draw level 1		
+	});
+
+	//next view is bound to panel_02
+	panel_02.activate(function(){
+		view0.next(2).bind(); //draw level 2	
+	});
+
+	//next view is bound to panel_03
+	panel_10.activate(function(){
+		view1.next(0).bind(); //draw level 2	
+	});
+
 
 	//group(name, id, num, color, merge_id)
 
