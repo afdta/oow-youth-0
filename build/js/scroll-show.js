@@ -3,7 +3,7 @@ import waypoint from '../../../js-modules/on-scroll2.js';
 export default function scroll_show(container_node){
 	var O = {};
 
-	//track the header: 0-default, 1-fixed, 2-absolute
+	//track the position of fixed element: 0-default, 1-fixed
 	var position = 0;
 	var pos_change_callback = null;
 
@@ -68,8 +68,9 @@ export default function scroll_show(container_node){
 	function afix(outer_panel, inner_panel, top_pad){
 
 		var parent = wrap.node(); //parent is the div that holds the panels
-		var container = outer_panel.node();
-		var inner = inner_panel;
+		var container = outer_panel.node(); //container never gets fixed
+		var inner = inner_panel; //inner panel gets fixed
+		var inner_node = inner.node();
 
 		outer_panel.style("z-index","2");
 		wrap.classed("panel-wrap",true);
@@ -82,17 +83,24 @@ export default function scroll_show(container_node){
 			try{
 				var rect = container.getBoundingClientRect();
 				var height_fixed = rect.bottom - rect.top;
+				
+				var inner_rect = inner_node.getBoundingClientRect();
+				var inner_height = inner_rect.bottom - inner_rect.top;
 
-				var past_bottom = (!!parent && parent.getBoundingClientRect().bottom < window_height-height_fixed-top_pad) ? true : false;
-				if(rect.top < 0 && !past_bottom){
+				//var past_bottom = (parent.getBoundingClientRect().bottom < window_height-height_fixed-top_pad) ? true : false;
+				var past_bottom = (parent.getBoundingClientRect().bottom < inner_height+top_pad+150) ? true : false;
+				
+				if(rect.top < top_pad && !past_bottom){
+					//console.log("fixed");
 					if(position !== 1){
 						inner.interrupt()
 							 .style("position","fixed")
+							 .style("opacity",1)
 							 //.style("bottom", (-height_fixed+"px"))
 							 //.style("height", height_fixed+"px")
 							 //.style("background-color",null)
+							 .style("top",(top_pad-0)+"px")
 							 .style("left","0px")
-							 .style("top","0")
 							 //.style("width","100%")
 							 .transition()
 							 .duration(400)
@@ -109,7 +117,7 @@ export default function scroll_show(container_node){
 						}
 					}
 				}
-				else if(rect.top < 0 && past_bottom){
+				/*else if(rect.top < 0 && past_bottom){
 					if(position !== 2){
 						inner.interrupt()
 							 .transition()
@@ -127,20 +135,24 @@ export default function scroll_show(container_node){
 							pos_change_callback(2);
 						}
 					}
+				}*/
+				else if(position > 0 && past_bottom){
+					//slide up
+					position = -1;
+					inner.interrupt().transition().style("top",(0-inner_height)+"px").on("end",function(){
+						inner.style("position","relative")
+							 .style("top",null);
+							 
+						if(!!pos_change_callback){
+							pos_change_callback(0);
+						}
+
+						position = 0;
+					});
 				}
-				else{
-					inner.interrupt().transition().duration(0)
-							 .style("position","relative")
-							 //.style("width","auto")
-							 //.style("height",height+"px")
-							 //.style("background-color",background_color)
-							 .style("top",null)
-							 //.style("bottom","auto")
-							 ;
+				else if(position > -1){
 					position = 0;
-					if(!!pos_change_callback){
-						pos_change_callback(0);
-					}
+					inner.interrupt().transition().duration(0).style("top","auto").style("position","relative");
 				}
 			}
 			catch(e){

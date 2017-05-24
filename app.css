@@ -25,33 +25,32 @@ div.reading{
   width:75%;
   max-width:1200px;
   min-width:320px;
-  margin:0em auto 2em auto;
+  margin:0em 1em 2em 1em;
 }
 
 div.reading > *{max-width:800px;line-height:1.6em;}
 div.reading > p, div.reading > ul{max-width:800px;}
 
 div.header-box{
-  margin:0.5em auto;
-  padding:0.5em;
+
 }
 
 .divdot{
-  width:1.1em;
+  width:1em;
   height:1.5em;
   display:inline-block;
   position:relative;
+  vertical-align:middle;
 }
 
 .divdot:after{
   content:"";
-  width:1em;
-  height:1em;
+  width:0.75em;
+  height:0.75em;
   display:inline-block;
-  margin:0.25em 0.05em 0em 0.05em;
+  margin:0.375em 0.125em 0em 0.125em;
   border-radius:0.5em;
   background-color: rgb(158, 25, 157);
-  vertical-align:top;
 }
 
 .header-box > p{
