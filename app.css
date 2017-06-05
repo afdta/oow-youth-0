@@ -6,7 +6,7 @@
 }
 
 .metro-interactive{
-  margin:1em auto;
+  margin:0em auto;
 }
 
 .metro-interactive, .metro-interactive .makesans *, text{
@@ -21,11 +21,63 @@ text{
   fill:#111111;
 }
 
+div.h-border{
+  height:0.5em;
+  margin:3em 1em 1em 1em;
+  padding:0.5em 0em 0em 0em;
+  width:100%;
+  width:calc(100% - 2em);
+  border-top:1px solid #d1d1d1;
+}
+
+div.view-wrap{
+  margin:1em 1em 2em 1em;
+  padding:1em;
+}
+
+div.view-wrap.full-bleed{
+  margin-left:1em;
+  margin-right:1em;
+}
+
+div.view-wrap.large{
+  margin-left:auto;
+  margin-right:auto;
+  max-width:1600px;
+}
+
+div.view-wrap.medium{
+  margin-left:auto;
+  margin-right:auto;
+  max-width:1000px;
+}
+
+/*text to annotate each stacked bar as part of the out of work "funnel" logic -- who is out of work*/
+div.funnel-text-wrap{
+  max-width:610px;
+  width:80%;
+  margin:1em 1em 1em 7%;
+}
+
+div.funnel-text-wrap p{
+  line-height:1.5em;
+}
+
+p:first-child strong{
+  font-size:1.5em;
+}
+
 div.reading{
   width:75%;
   max-width:1200px;
   min-width:320px;
   margin:0em 1em 2em 1em;
+}
+
+div.reading.centered{
+  margin-right:auto;
+  margin-left:auto;
+  max-width:610px;
 }
 
 div.reading > *{max-width:800px;line-height:1.6em;}
@@ -119,4 +171,23 @@ img{
 
 @media (min-width:1200px){
 
+}
+
+/*text colors*/
+.blue-text{
+  color:#0d73d6;
+  font-weight:bold;
+}
+.red-text{
+  color:#dc2a2a;
+  font-weight:bold;
+}
+.pink-text{
+  color:#ff6464;
+  font-weight:bold;
+}
+
+.first-letter{
+  font-weight:bold;
+  font-size:5em;
 }

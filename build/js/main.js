@@ -11,7 +11,7 @@ import met_map from '../../../js-modules/met-map.js';
 import format from '../../../js-modules/formats.js';
 
 //out of work modules
-import dot_matrix from './dot-matrix.js';
+import funnel from './funnel.js';
 import scroll_show from './scroll-show.js';
 
 dir.local("./").add("data")
@@ -19,6 +19,11 @@ dir.local("./").add("data")
 
 //main out of work function to run on load
 function main(){
+
+	funnel(document.getElementById("view0-wrap"));
+
+	return null;
+	//
 
 	//scroll show 0
 	var ss0 = scroll_show(document.getElementById("view0-wrap"));
@@ -86,6 +91,16 @@ function main(){
 			.group("Median age: 55, Moderate education", "oow5", 12, "#666666", "oow5")
 			.group("Median age: 34, High education", "oow6", 9, "#666666", "oow6")
 			.group("Median age: 56, High education", "oow7", 11, "#666666", "oow7")
+			.title("Young, low educational attainment")
+			.next()
+
+			.group("Median age: 30, Low education", "oow1", 10, scc[0], "oow")
+			.group("Median age: 44, Low education", "oow2", 37, scc[1], "oow")
+			.group("Median age: 58, Low education", "oow3", 7, scc[2], "oow")
+			.group("Median age: 33, Moderate education", "oow4", 14, scc[3], "oow")
+			.group("Median age: 55, Moderate education", "oow5", 12, scc[4], "oow")
+			.group("Median age: 34, High education", "oow6", 9, scc[5], "oow")
+			.group("Median age: 56, High education", "oow7", 11, scc[6], "oow")
 			.title("Young, low educational attainment")
 			.next()
 
