@@ -1,0 +1,36 @@
+***
+Notes from Natalie on data handoff:
+***
+
+Thursday, June 01, 2017 6:06 PM
+
+Hi Alec,
+
+Super convenient time for webmail to be down...
+
+Was just sending this to you:
+
+So sorry again for the delay getting things to you. GIS is not cooperating (broken record, I know), so I've not been able to export the counties shapefile, but the places shapefile is all set.
+
+I've again uploaded everything to this box.com folder: https://app.box.com/s/a0yps0zi39zf5wygz1lwm7wxzmkh9yoa
+
+There are four csv files:
+- topline descriptive statistics 25-64, which contains "universe" (i.e., all non-inst civilians 25-64) and "sample" descriptive stats for all jurisdictions, as well as the aggregated geos of interest and nation
+- PUMA to geo xwalk, which is a crosswalk between PUMAs, their assigned jurisdiction ("FIPS_final"), and their display jurisdiction (i.e., city or county; "display_geo")
+- cluster, supercluster data, which contains descriptive stats for superclusters (across all places), jurisdiction-level cluster descriptive stats, and jurisdiction-level descriptive stats (which duplicates jurisdiction-level sample population stats in the topline file)
+- cluster, supercluster distribution by puma, which shows the percentage of a cluster or supercluster within a jurisdiction that falls in a given PUMA
+
+There are three sets of shapefiles:
+- Export_Output is a shapefile of primary cities; there are 24 jurisdictions whose "display_geo" ID relates to this file
+- mergedshapefile is a shapefile of all PUMAs in the US
+- higgins geos is a shapefile of PUMAs aggregated to the geos of interest
+
+I think that's all for now... please let me know if you have trouble with anything, or if it would be helpful for me to move things around.
+
+Thank you!!
+Natalie
+
+***
+And then a followup later
+***
+FYI I just added one more csv to the box folder, with the distribution of superclusters by geo--i.e., % that is in supercluster 1, 2, etc. (Sums to 100% within each place). Not sure if you need it, but it struck me that I'd neglected to include it before!
