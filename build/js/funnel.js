@@ -17,19 +17,52 @@ export default function funnel(container){
 	var keys_all = ["unemp_oow", "unemp_other", "nilf_oow", "nilf_other", "emp"];
 	var cols = ["#dc2a2a", "#ff6464", "#0d73d6"];
 
+	cols[2] = "#65a4e5";
+
+	var clips = 0;
+
 	//keys1 and keys2 should look like: [{key:"unemp_oow", col:0}, ...] where col is 0, 1, or 2 (red, pink, or blue)
  	function add_layer(text, key_highlight, keys1, keys2){
-		var slide = wrap.append("div").style("margin","3em 0em 7em 0em").style("opacity","0.4");
-		var svg = slide.append("svg").attr("width","100%").attr("height","50px");
+		var slide = wrap.append("div")
+						.style("margin","3em 0em 5em 0em")
+						.style("opacity","0.5")
+						.classed("c-fix",true);
+
+		var marker = slide.append("div").classed("marker",true);
+			marker.append("div");
+		
 		var text_wrap = slide.append("div")
-						.classed("funnel-text-wrap", true)
-						.style("opacity","0")
+						.classed("funnel-text-wrap left40 makesans", true)
+						.style("opacity","0.5")
+						;
+		
+		var svg_wrap = slide.append("div")
+							.classed("left60",true);
+
+		var svg = svg_wrap.append("svg").attr("width","100%").attr("height","50px");
+
+		var rects = svg.append("g");
+
+		var clipid = "clip" + (++clips);
+		var clip = svg.append("defs")
+						.append("clipPath")
+						.attr("id", clipid)
+						.append("rect")
+						.attr("width","100%")
+						.attr("height","35px")
+						.attr("y","10")
+						.attr("rx","13")
+						.attr("ry","13")
+						.attr("fill","#ffffff")
 						;
 
-			var text_ = [].concat(text);
-			text_wrap.selectAll("p").data(text_).enter().append("p")
-					.html(text)
-					;
+		rects.attr("clip-path", "url(#" + clipid + ")")
+
+		var text_ = [].concat(text);
+		text_wrap.selectAll("p").data(text_).enter().append("p")
+				.html(text)
+				.style("margin","10px 0em 0em 2em")
+				;
 
 		
 
@@ -39,7 +72,7 @@ export default function funnel(container){
 		var colors1 = keys1.map(function(d){return cols[d.col]});
 
 		//setup with enter selection only	
-		svg.selectAll("rect.segment").data(stack1, function(d){return d.key})
+		rects.selectAll("rect.segment").data(stack1, function(d){return d.key})
 							 .enter()
 							 .append("rect")
 							 .classed("segment",true)
@@ -67,7 +100,7 @@ export default function funnel(container){
 				var stack2 = d3.stack().keys(keys2.map(function(d){return d.key}))(values);
 				var colors2 = keys2.map(function(d){return cols[d.col]});
 			
-				var update = svg.selectAll("rect.segment").data(stack2, function(d){return d.key});
+				var update = rects.selectAll("rect.segment").data(stack2, function(d){return d.key});
 
 
 				var all = update.enter()
@@ -83,33 +116,36 @@ export default function funnel(container){
 					all.filter(function(d,i){return !!keys2[i].bump}).raise();
 
 				var t1 = all.transition()
-						.delay(1000)
-						.duration(500)
-						.attr("y", function(d, i){
-							return !!keys2[i].bump ? "0px" : "10px"
+						.delay(500)
+						.duration(800)
+						.attr("stroke", function(d,i){
+							return !!keys2[i].bump ? "#ffffff" : colors2[i];
 						})
+						.attr("width", function(d){
+							var share =  100*(d[0][1] - d[0][0])/tot;
+							return share+"%";
+						})
+						/*.attr("y", function(d, i){
+							return !!keys2[i].bump ? "0px" : "10px"
+						})*/
 
 					//if not bumped, transition color now
 					t1.filter(function(d,i){return !keys2[i].bump})
 						.attr("fill", function(d,i){
 							return colors2[i]}
 						)
-						.attr("stroke", function(d,i){
+						/*.attr("stroke", function(d,i){
 							return colors2[i]}
-						)
+						)*/
 
 				var t2 = t1.transition()
 						.duration(2000)
-						.attr("width", function(d){
-							var share =  100*(d[0][1] - d[0][0])/tot;
-							return share+"%";
-						})
 						.attr("x", function(d){
 							return (100*d[0][0]/tot)+"%";
 						})
 
 				var t3 = t2.transition()
-						.duration(500)
+						.duration(800)
 						.attr("y", "10px")
 						.attr("fill", function(d,i){
 							return colors2[i]}
@@ -123,12 +159,14 @@ export default function funnel(container){
 						;
 
 				text_wrap.transition().duration(500).style("opacity",1);
+				marker.classed("active",true);
 				slide.transition().duration(500).style("opacity",1);	
 			}
-			waypoint(slide.node()).buffer(-1, 0.7).activate(activate);		
+			waypoint(svg_wrap.node()).buffer(-1, 0.7).activate(activate);		
 		}
 		else{
 			text_wrap.transition().duration(500).style("opacity",1);
+			marker.classed("active",true);
 			slide.transition().duration(500).style("opacity",1);
 		} 		
 	}

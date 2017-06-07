@@ -350,18 +350,50 @@ function funnel(container){
 	var keys_all = ["unemp_oow", "unemp_other", "nilf_oow", "nilf_other", "emp"];
 	var cols = ["#dc2a2a", "#ff6464", "#0d73d6"];
 
+	cols[2] = "#65a4e5";
+
+	var clips = 0;
+
 	//keys1 and keys2 should look like: [{key:"unemp_oow", col:0}, ...] where col is 0, 1, or 2 (red, pink, or blue)
  	function add_layer(text, key_highlight, keys1, keys2){
-		var slide = wrap.append("div").style("margin","3em 0em 7em 0em").style("opacity","0.4");
-		var svg = slide.append("svg").attr("width","100%").attr("height","50px");
-		var text_wrap = slide.append("div")
-						.classed("funnel-text-wrap", true)
-						.style("opacity","0");
+		var slide = wrap.append("div")
+						.style("margin","3em 0em 5em 0em")
+						.style("opacity","0.5")
+						.classed("c-fix",true);
 
-			var text_ = [].concat(text);
-			text_wrap.selectAll("p").data(text_).enter().append("p")
-					.html(text)
-					;
+		var marker = slide.append("div").classed("marker",true);
+			marker.append("div");
+		
+		var text_wrap = slide.append("div")
+						.classed("funnel-text-wrap left40 makesans", true)
+						.style("opacity","0.5");
+		
+		var svg_wrap = slide.append("div")
+							.classed("left60",true);
+
+		var svg = svg_wrap.append("svg").attr("width","100%").attr("height","50px");
+
+		var rects = svg.append("g");
+
+		var clipid = "clip" + (++clips);
+		var clip = svg.append("defs")
+						.append("clipPath")
+						.attr("id", clipid)
+						.append("rect")
+						.attr("width","100%")
+						.attr("height","35px")
+						.attr("y","10")
+						.attr("rx","13")
+						.attr("ry","13")
+						.attr("fill","#ffffff");
+
+		rects.attr("clip-path", "url(#" + clipid + ")");
+
+		var text_ = [].concat(text);
+		text_wrap.selectAll("p").data(text_).enter().append("p")
+				.html(text)
+				.style("margin","10px 0em 0em 2em")
+				;
 
 		
 
@@ -371,7 +403,7 @@ function funnel(container){
 		var colors1 = keys1.map(function(d){return cols[d.col]});
 
 		//setup with enter selection only	
-		svg.selectAll("rect.segment").data(stack1, function(d){return d.key})
+		rects.selectAll("rect.segment").data(stack1, function(d){return d.key})
 							 .enter()
 							 .append("rect")
 							 .classed("segment",true)
@@ -399,7 +431,7 @@ function funnel(container){
 				var stack2 = d3.stack().keys(keys2.map(function(d){return d.key}))(values);
 				var colors2 = keys2.map(function(d){return cols[d.col]});
 			
-				var update = svg.selectAll("rect.segment").data(stack2, function(d){return d.key});
+				var update = rects.selectAll("rect.segment").data(stack2, function(d){return d.key});
 
 
 				var all = update.enter()
@@ -414,33 +446,36 @@ function funnel(container){
 					all.filter(function(d,i){return !!keys2[i].bump}).raise();
 
 				var t1 = all.transition()
-						.delay(1000)
-						.duration(500)
-						.attr("y", function(d, i){
-							return !!keys2[i].bump ? "0px" : "10px"
+						.delay(500)
+						.duration(800)
+						.attr("stroke", function(d,i){
+							return !!keys2[i].bump ? "#ffffff" : colors2[i];
+						})
+						.attr("width", function(d){
+							var share =  100*(d[0][1] - d[0][0])/tot;
+							return share+"%";
 						});
+						/*.attr("y", function(d, i){
+							return !!keys2[i].bump ? "0px" : "10px"
+						})*/
 
 					//if not bumped, transition color now
 					t1.filter(function(d,i){return !keys2[i].bump})
 						.attr("fill", function(d,i){
 							return colors2[i]}
-						)
-						.attr("stroke", function(d,i){
-							return colors2[i]}
 						);
+						/*.attr("stroke", function(d,i){
+							return colors2[i]}
+						)*/
 
 				var t2 = t1.transition()
 						.duration(2000)
-						.attr("width", function(d){
-							var share =  100*(d[0][1] - d[0][0])/tot;
-							return share+"%";
-						})
 						.attr("x", function(d){
 							return (100*d[0][0]/tot)+"%";
 						});
 
 				var t3 = t2.transition()
-						.duration(500)
+						.duration(800)
 						.attr("y", "10px")
 						.attr("fill", function(d,i){
 							return colors2[i]}
@@ -453,12 +488,14 @@ function funnel(container){
 						});
 
 				text_wrap.transition().duration(500).style("opacity",1);
+				marker.classed("active",true);
 				slide.transition().duration(500).style("opacity",1);	
 			}
-			waypoint$1(slide.node()).buffer(-1, 0.7).activate(activate);		
+			waypoint$1(svg_wrap.node()).buffer(-1, 0.7).activate(activate);		
 		}
 		else{
 			text_wrap.transition().duration(500).style("opacity",1);
+			marker.classed("active",true);
 			slide.transition().duration(500).style("opacity",1);
 		} 		
 	}
@@ -685,6 +722,188 @@ function scroll_show(container_node){
 	return O;
 }
 
+var supercluster_profile_data = 
+[{"FIPS_final":"","Name_final":"AGGREGATE GEOS","group":"SUPERCLUSTER","superclus2":6,"sample":36755,"count":1205776.75415,"unemployed":0.27553,"lastworked_pastyr":0.29075,"male":0.3562,"age25":48,"agemed":56,"age75":60,"a2534":0.01485,"a3544":0.16524,"a4554":0.21796,"a5564":0.60194,"whiteNH":0.65795,"blackNH":0.08205,"latino":0.09799,"asianNH":0.14256,"otherNH":0.01945,"insch":0.00559,"lths":0,"hs":0,"sc":0,"aa":0,"baplus":1,"dis":0.10408,"fb":0.29039,"lep":0.13546,"married":0.66887,"children":0.15335,"nospouse_kids":0.03352,"snap":0.08663,"fincpadj":83546.35692},{"FIPS_final":"","Name_final":"AGGREGATE GEOS","group":"SUPERCLUSTER","superclus2":3,"sample":26408,"count":1222002.21987,"unemployed":0.35678,"lastworked_pastyr":0.26904,"male":0.39408,"age25":27,"agemed":30,"age75":33,"a2534":0.89372,"a3544":0.06215,"a4554":0.03781,"a5564":0.00632,"whiteNH":0.24877,"blackNH":0.23947,"latino":0.44,"asianNH":0.04644,"otherNH":0.02531,"insch":0.00989,"lths":0.40729,"hs":0.59271,"sc":0,"aa":0,"baplus":0,"dis":0.1114,"fb":0.35058,"lep":0.28628,"married":0.35275,"children":0.45459,"nospouse_kids":0.19993,"snap":0.45712,"fincpadj":30753.26022},{"FIPS_final":"","Name_final":"AGGREGATE GEOS","group":"SUPERCLUSTER","superclus2":7,"sample":28088,"count":1048371.58704,"unemployed":0.42489,"lastworked_pastyr":0.37948,"male":0.35561,"age25":29,"agemed":34,"age75":45,"a2534":0.50357,"a3544":0.22673,"a4554":0.26447,"a5564":0.00524,"whiteNH":0.49261,"blackNH":0.10192,"latino":0.14501,"asianNH":0.2284,"otherNH":0.03205,"insch":0.02189,"lths":0,"hs":0,"sc":0,"aa":0,"baplus":1,"dis":0.06407,"fb":0.38749,"lep":0.17321,"married":0.54387,"children":0.33105,"nospouse_kids":0.07343,"snap":0.1128,"fincpadj":65082.16},{"FIPS_final":"","Name_final":"AGGREGATE GEOS","group":"SUPERCLUSTER","superclus2":4,"sample":39727,"count":1386480.32727,"unemployed":0.29172,"lastworked_pastyr":0.25619,"male":0.35497,"age25":46,"agemed":55,"age75":59,"a2534":0.00863,"a3544":0.21282,"a4554":0.25772,"a5564":0.52083,"whiteNH":0.5544,"blackNH":0.17415,"latino":0.16676,"asianNH":0.07587,"otherNH":0.02882,"insch":0.02458,"lths":0,"hs":0,"sc":0.73328,"aa":0.26057,"baplus":0.00615,"dis":0.18454,"fb":0.22275,"lep":0.12298,"married":0.55839,"children":0.15538,"nospouse_kids":0.05615,"snap":0.21896,"fincpadj":54228.24885},{"FIPS_final":"","Name_final":"AGGREGATE GEOS","group":"SUPERCLUSTER","superclus2":1,"sample":105203,"count":4243719.4006,"unemployed":0.27545,"lastworked_pastyr":0.20018,"male":0.35541,"age25":37,"agemed":45,"age75":52,"a2534":0.15121,"a3544":0.32846,"a4554":0.34768,"a5564":0.17265,"whiteNH":0.29661,"blackNH":0.17242,"latino":0.4293,"asianNH":0.08142,"otherNH":0.02025,"insch":0.00433,"lths":0.4447,"hs":0.55529,"sc":0.00002,"aa":0,"baplus":0,"dis":0.16274,"fb":0.45004,"lep":0.37532,"married":0.50235,"children":0.32083,"nospouse_kids":0.10668,"snap":0.35655,"fincpadj":35336.76918},{"FIPS_final":"","Name_final":"AGGREGATE GEOS","group":"SUPERCLUSTER","superclus2":2,"sample":18068,"count":655226.07955,"unemployed":0.18045,"lastworked_pastyr":0.16611,"male":0.35161,"age25":56,"agemed":59,"age75":61,"a2534":0,"a3544":0.01063,"a4554":0.02442,"a5564":0.96495,"whiteNH":0.37899,"blackNH":0.15918,"latino":0.304,"asianNH":0.13848,"otherNH":0.01935,"insch":0.00098,"lths":0.42892,"hs":0.56766,"sc":0.00259,"aa":0.00083,"baplus":0,"dis":0.21648,"fb":0.46537,"lep":0.38722,"married":0.59202,"children":0.04368,"nospouse_kids":0.01218,"snap":0.26365,"fincpadj":45432.98894},{"FIPS_final":"","Name_final":"AGGREGATE GEOS","group":"SUPERCLUSTER","superclus2":5,"sample":37436,"count":1554480.24723,"unemployed":0.45869,"lastworked_pastyr":0.3478,"male":0.37999,"age25":29,"agemed":33,"age75":44,"a2534":0.5522,"a3544":0.21665,"a4554":0.21792,"a5564":0.01323,"whiteNH":0.41136,"blackNH":0.22289,"latino":0.25027,"asianNH":0.0783,"otherNH":0.03718,"insch":0.08135,"lths":0,"hs":0,"sc":0.75734,"aa":0.23356,"baplus":0.0091,"dis":0.12383,"fb":0.22815,"lep":0.11909,"married":0.40212,"children":0.39313,"nospouse_kids":0.16759,"snap":0.32253,"fincpadj":41711.67194}];
+
+function palette(palette_name){
+	var p = {};
+
+	p.primary = {};
+	p.primary.blue = "#053769";
+	p.primary.red = "#dc2a2a";
+	p.primary.yellow = "#ffcf1a";
+	p.primary.gray = p.primary.grey = "#4c4c4c";
+	p.primary.orange = "#ffa500";
+	p.primary.green = "#008000";
+	p.primary.purple = "#800080";
+
+	p.secondary = {};
+	p.secondary.blue = "#a4c7f2";
+	p.secondary.red = "#e26f6f";
+	p.secondary.yellow = "#ffdf66";
+	p.secondary.gray = p.secondary.grey =  "#aaaaaa";
+	p.secondary.orange = "#ffc04c";
+	p.secondary.green = "#00b400";
+	p.secondary.purple = "#cc00cc";
+
+	p.text = "#111111"; 
+	
+
+	if(arguments.length==0 || palette_name.toLowerCase()=="b"){
+		return p;
+	}
+	else{
+		return p;
+	}
+}
+
+function supercluster_profiles(container){
+	console.log(palette);
+	var pal = palette();
+
+	//color credit: colorbrewer2.org
+	var colors = ['#666666','#0d73d6','#65a4e5','#a6d854','#66c2a5','#fc8d62','#ffd92f','#e5c494'];
+
+	supercluster_profile_data.sort(function(a,b){
+		return a.superclus2 - b.superclus2;
+	});
+
+	var tot_oow = d3.sum(supercluster_profile_data, function(d){return d.count});
+
+	var supercluster_titles = [
+		"",
+		"Less educated prime-age people (38%)",
+		"Motivated and moderately educated younger people (14%)",
+		"Young, less-educated, and diverse (11%)",
+		"Highly educated, high-income older people (11%)",
+		"Moderately educated older people (12%)",
+		"Highly educated, high-income older people (11%)",
+		"Highly educated and engaged younger people (9%)",
+		"Diverse, less educated, and eyeing retirement (6%)"
+	];
+
+	var wrap = d3.select(container);
+
+	//one-time profile setup
+	var slides = wrap.selectAll("div.supercluster_profile")
+					 .data(supercluster_profile_data)
+					 .enter().append("div")
+					 .classed("supercluster_profile",true);
+
+	slides.each(function(d,i){
+		//console.log(d);
+
+		var thiz = d3.select(this)
+					  .style("margin","2em 0em")
+					  .style("box-sizing","border-box")
+					  .style("min-height","90vh");
+		//thiz.append("div").classed("h-border",true);
+		console.log(d);
+		var title_box = thiz.append("div");
+		var title = title_box.append("p")
+							 .classed("cluster-title",true);
+			
+			title.append("div").style("background-color", colors[d.superclus2]);
+			title.append("span").text(supercluster_titles[d.superclus2]);
+
+							 
+		var svg = title_box.append("svg").style("width", "100%").style("height","50px");
+
+		var rect_data = supercluster_profile_data.map(function(d){
+			return {count: d.count, id:d.superclus2, share:d.count/tot_oow}
+		}).sort(function(a,b){
+			var compare = 0;
+			if(a.id==d.superclus2){
+				compare = -1;
+			}
+			else if(b.id==d.superclus2){
+				compare = 1;
+			}
+			else{
+				compare = a.id - b.id;
+			}
+			return compare;
+		});
+
+		var cumulative = 0;
+		rect_data.forEach(function(d,i,a){
+			d.cumulative = cumulative;
+			cumulative += d.share;
+		});			
+
+		var rects = svg.selectAll("rect").data(rect_data).enter().append("rect")
+						.attr("width", function(d){return (d.share*100)+"%" })
+						.attr("height","100%")
+						.attr("fill",function(d,i){
+							return colors[d.id]
+						})
+						.attr("x", function(d,i){
+							return (d.cumulative*100)+"%";
+						}); 
+
+		var content = thiz.append("div")
+						  .style("background-color","#eeeeee")
+						  .style("min-height","100px")
+						  .style("padding","1em")
+						  .style("width","100%")
+						  .classed("makesans",true);
+
+		var subtitle = content.append("p").style("line-height","1.5em");
+			subtitle.append("span").html("• " + format.num0(d.count) + " out-of-work <br />");
+			subtitle.append("span").html("• " + format.sh1(d.count/tot_oow) + " of the out-of-work in 137 jurisdictions");  
+		
+
+		//var stack = content.append()
+		
+		//Age
+		(function(){
+
+		})();
+
+		//Race
+		(function(){
+
+		})();
+
+		//Sex
+		(function(){
+
+		})();
+
+		//Education
+		(function(){
+
+		})();
+
+		//Disaility
+		(function(){
+
+		})();
+
+		//LEP
+		(function(){
+
+		})();
+
+		//Children
+		(function(){
+
+		})();
+
+		//Looking for work
+		(function(){
+
+		})();
+
+		//Worked in last year
+		(function(){
+
+		})();
+
+	});
+
+}
+
 //"out of work" population project, june 2017
 //add browser compat message: test for svg, array.filter and map
 
@@ -698,6 +917,7 @@ dir.local("./").add("data");
 function main(){
 
 	funnel(document.getElementById("view0-wrap"));
+	supercluster_profiles(document.getElementById("view2-wrap"));
 
 	return null;
 	//

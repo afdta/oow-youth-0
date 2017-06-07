@@ -13,6 +13,7 @@ import format from '../../../js-modules/formats.js';
 //out of work modules
 import funnel from './funnel.js';
 import scroll_show from './scroll-show.js';
+import supercluster_profiles from './supercluster_profiles.js';
 
 dir.local("./").add("data")
 //dir.add("data", "outof-work/data");
@@ -21,6 +22,7 @@ dir.local("./").add("data")
 function main(){
 
 	funnel(document.getElementById("view0-wrap"));
+	supercluster_profiles(document.getElementById("view2-wrap"));
 
 	return null;
 	//
