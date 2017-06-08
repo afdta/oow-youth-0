@@ -117,7 +117,7 @@ export default function funnel(container){
 
 				var t1 = all.transition()
 						.delay(500)
-						.duration(800)
+						.duration(1200)
 						.attr("stroke", function(d,i){
 							return !!keys2[i].bump ? "#ffffff" : colors2[i];
 						})

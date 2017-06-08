@@ -270,7 +270,7 @@ p.subway-tile-title{
 }
 
 div.subway-tile{
-  width:19%;
+  width:25%;
   padding:0% 1% 0% 0%;
   float:left;
 }
@@ -318,5 +318,42 @@ div.subway-tile > div.tile-header > div.dot > p{
 }
 
 div.supercluster-profile{
-  margin:3em 0em;
+  margin:3em 0em 6em 0em;
+  border-bottom:1px solid #aaaaaa;
+  min-height:90vh;
+}
+
+div.supercluster-profile .chart-widget{
+  margin:0em 0em 1em 0em;
+}
+
+div.avatar-profile{
+  padding:1em 0em 0em 0em;
+  width:45%;
+  float:left;
+  border-top:1px solid #aaaaaa;
+}
+
+div.avatar-profile .avatar{
+  float:left;
+  height:auto;
+  width:30%;
+  padding-right:2em;
+}
+
+div.avatar-profile .avatar img{
+  width:100%;
+  height:auto;
+  display:block;
+}
+
+div.avatar-profile .avatar-text{
+  float:left;
+  width:60%;
+  height:100%;
+}
+
+div.avatar-profile .avatar-text p{
+  display:inline-block;
+  vertical-align:bottom;
 }
