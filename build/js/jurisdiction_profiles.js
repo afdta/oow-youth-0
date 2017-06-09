@@ -1,19 +1,112 @@
 import cluster_data from './cluster_data.js';
+import format from '../../../js-modules/formats.js';
 import sc_stack from './sc_stack.js';
 
-export default function supercluster_profiles(container){
+export default function jurisdiction_profiles(container){
+	var sc_stacker = sc_stack();
+	var jurisdiction_data = cluster_data.jurisdiction;
+	var options_data = cluster_data.lookup.sort(function(a,b){return a.Name_final < b.Name_final ? -1 : 1});
+	var place_lookup = {};
+	(function(){
+		var i = -1;
+		while(++i < options_data.length){
+			place_lookup[options_data[i].FIPS_final] = options_data[i].Name_final;
+		}
+	})();
 
-	var supercluster_profile_data = cluster_data.super;
+	var nest = d3.nest().key(function(d){return d.FIPS_final})
+						.key(function(d){return d.superclus2 === null ? "ALL" : d.superclus2});
+	var nest2 = d3.nest().key(function(d){return d.FIPS_final})
+						.key(function(d){return d.superclus2 === null ? "ALL" : d.superclus2})
+						.rollup(function(d){
+							return d3.sum(d, function(obs){return obs.count});
+						});
+	var nest3 = d3.nest().key(function(d){return d.FIPS_final})
+						.rollup(function(d){
+							console.log(d);
+							return d3.sum(d.filter(function(obs){
+								return obs.group !== "ALL" && obs.superclus2 != null;
+							}), function(obs){
+								return obs.count;
+							});
+						});
 
-	supercluster_profile_data.sort(function(a,b){
-		return a.superclus2 - b.superclus2;
+	var nested_data = nest.object(jurisdiction_data); 
+	var nested_sums = nest2.object(jurisdiction_data);
+	var tot_oow = nest3.object(jurisdiction_data);
+
+	var wrap = d3.select(container).classed("makesans",true);
+
+	var title_wrap = wrap.append("div").classed("c-fix",true).style("vertical-align","bottom").style("height","2em")
+
+	var place_title2 = title_wrap.append("p").html("<b>Local distribution of major out-of-work groups</b> | ")
+									   .classed("c-fix",true)
+									   .style("margin-bottom","0.5em")
+									   .style("float","left")
+									   .append("span")
+									   //.style("float","right")
+									   .html("<em>Select a segment to view underlying data</em>")
+									   .style("text-align","right");
+
+	//var place_title = title_wrap.append("p").style("float","left");
+	
+	var select_wrap = title_wrap.append("div").style("border","1px solid #aaaaaa").style("padding","0.25em").style("float","right").style("margin","0.5em");
+
+	var select = select_wrap.append("select");
+	var options = select.selectAll("option").data(options_data)
+						.enter().append("option")
+						.attr("value", function(d){return d.FIPS_final})
+						.text(function(d){return d.FIPS_final=="" ? "All jurisdictions" : d.Name_final})
+						;
+
+
+
+	var svg = wrap.append("svg").attr("width","100%").attr("height","50px");
+
+	function draw(id){
+		var dat = nested_data[id];
+		var sums = nested_sums[id];
+		
+		var tot = tot_oow[id];
+		//rect_data should look like: [{count:x, share:count/total, id:superclus2}]
+		var rect_data = [1,2,3,4,5,6,7].map(function(d,i){
+			
+			var r = {id:d}; //id is numeric
+			if(sums.hasOwnProperty(d+"")){ 
+				r.count = sums[d+""];
+			}
+			else{
+				r.count = 0;
+			}
+			r.share = r.count / tot; 
+			return r;
+		});
+
+		sc_stacker.stack(rect_data, svg);
+		
+		var place = id=="" ? "All jurisdictions" : place_lookup[id];
+		//place_title.text(place);
+		//place_title2.text(place);
+
+	}
+
+	draw(options_data[0].FIPS_final);
+
+	select.on("change", function(d,i){
+		var id = this.value;
+		draw(id);
 	});
 
-	var tot_oow = d3.sum(supercluster_profile_data, function(d){return d.count});
 
-	var sc_stacker = sc_stack();
 
-	var wrap = d3.select(container);
+
+	return null;
+
+	var tot_oow = d3.sum(jurisdiction_data, function(d){return d.count});
+
+
+
+	
 
 	//one-time profile setup
 	var slides = wrap.selectAll("div.supercluster-profile")
@@ -23,11 +116,11 @@ export default function supercluster_profiles(container){
 					 ;
 
 	slides.each(function(d,i){
-		//console.log(d);
+		console.log(d);
 
 		var thiz = d3.select(this);
 
-		var COLOR = sc_stacker.color(d.superclus2);
+		var COLOR = colors[d.superclus2];
 		//thiz.append("div").classed("h-border",true);
 		//console.log(d);
 		var title_box = thiz.append("div");
@@ -35,10 +128,10 @@ export default function supercluster_profiles(container){
 							 .classed("cluster-title",true);
 			
 			title.append("div").style("background-color", COLOR);
-			title.append("span").text(sc_stacker.title(d.superclus2));
+			title.append("span").text(about_clusters.titles[d.superclus2]);
 
 							 ;
-		var svg = title_box.append("svg").style("width", "100%").style("height","50px");
+		var svg = title_box.append("svg").style("width", "100%").style("height","50px").style("overflow","visible");
 
 		var rect_data = supercluster_profile_data.map(function(d){
 			return {count: d.count, id:d.superclus2, share:d.count/tot_oow}
@@ -56,8 +149,51 @@ export default function supercluster_profiles(container){
 			return compare;
 		});
 
-		sc_stacker.stack(rect_data, svg);
-		
+		var cumulative = 0;
+		rect_data.forEach(function(d,i,a){
+			d.cumulative = cumulative;
+			cumulative += d.share;
+		});			
+
+		var rects = svg.selectAll("rect").data(rect_data).enter().append("rect")
+						.attr("width", function(d){return (d.share*100)+"%" })
+						.attr("height","100%")
+						.attr("fill",function(d,i){
+							return colors[d.id]
+						})
+						.attr("x", function(d,i){
+							return (d.cumulative*100)+"%";
+						})
+						.style("shape-rendering","crispEdges")
+						.style("stroke","#eeeeee")
+						.style("stroke-width","1")
+						; 
+
+		var texts = svg.selectAll("g").data(rect_data).enter().append("g")
+						.selectAll("text").data(function(d){return [d,d]}).enter().append("text")
+						.attr("x", function(d){return (100*(d.cumulative + d.share))+"%"})
+						.attr("y", 50)
+						.attr("dy",15)
+						.attr("dx",-3)
+						.attr("text-anchor","end")
+						.text(function(d){return format.sh1(d.share)})
+						.style("fill",function(d,i){
+							return d3.color(colors[d.id]).darker(1.25);
+						})
+						.style("stroke-opacity",function(d,i){
+							return i == 0 ? 0.4 : 1;
+						})
+						.style("stroke",function(d,i){
+							return i == 0 ? "#eeeeee" : null;
+						})
+						.style("stroke-width",function(d,i){
+							return i == 0 ? 3 : null;
+						})
+						.style("font-weight",function(d,i){
+							return i == 0 ? "normal" : "normal";
+						})
+						.style("font-size","15px")
+						;
 
 		var content = thiz.append("div")
 						  .style("min-height","100px")
@@ -165,14 +301,13 @@ export default function supercluster_profiles(container){
 						{label:"45–44", value:d.a4554}, 
 						{label:"55–64", value:d.a5564}]
 						;
-						//console.log(vals);
+						console.log(vals);
 			chartWidget("Age", vals, false, chartWrap1);
 		})();
 
 		//Education
 		(function(){
-			var vals = [{label:"In school", value:d.insch}, 
-						{label:"<HS", value:d.lths}, 
+			var vals = [{label:"<HS", value:d.lths}, 
 						{label:"HS", value:d.hs}, 
 						{label:"Some college", value:d.sc}, 
 						{label:"Associate's", value:d.aa},

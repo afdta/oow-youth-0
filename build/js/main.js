@@ -14,6 +14,8 @@ import format from '../../../js-modules/formats.js';
 import funnel from './funnel.js';
 import scroll_show from './scroll-show.js';
 import supercluster_profiles from './supercluster_profiles.js';
+import jurisdiction_profiles from './jurisdiction_profiles.js';
+import header from './header.js';
 
 dir.local("./").add("data")
 //dir.add("data", "outof-work/data");
@@ -23,6 +25,23 @@ function main(){
 
 	funnel(document.getElementById("view0-wrap"));
 	supercluster_profiles(document.getElementById("view2-wrap"));
+	jurisdiction_profiles(document.getElementById("jurisdiction-profiles"));
+
+
+	//build out header
+	var mhead = header()
+			.parent(document.getElementById("out-of-work"))
+			.height(140, 70)
+			.build(document.getElementById("oow-header"));
+
+	var header_content = mhead.content
+							.append("div")
+							.style("padding", "5px 0em 0px 0em")
+							.classed("c-fix",true)
+							.html('<p style="text-align:center">Navigation menu / jurisdiction selection</p><p style="text-align:center">[Jump to: <a href="#view2-wrap">1) groups</a>, <a href="#view3-wrap">2) jurisdiction data</a> | Navigation will afix to the bottom of screen]</p>');
+
+	//var selects = header_content.append("div").style("float","right").classed("c-fix",true);
+
 
 	return null;
 	//
