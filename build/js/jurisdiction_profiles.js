@@ -6,6 +6,7 @@ export default function jurisdiction_profiles(container){
 	var sc_stacker = sc_stack();
 	var jurisdiction_data = cluster_data.jurisdiction;
 	var options_data = cluster_data.lookup.sort(function(a,b){return a.Name_final < b.Name_final ? -1 : 1});
+	
 	var place_lookup = {};
 	(function(){
 		var i = -1;
@@ -15,59 +16,119 @@ export default function jurisdiction_profiles(container){
 	})();
 
 	var nest = d3.nest().key(function(d){return d.FIPS_final})
-						.key(function(d){return d.superclus2 === null ? "ALL" : d.superclus2});
+						.key(function(d){return d.superclus2});
 	var nest2 = d3.nest().key(function(d){return d.FIPS_final})
-						.key(function(d){return d.superclus2 === null ? "ALL" : d.superclus2})
+						.key(function(d){return d.superclus2})
 						.rollup(function(d){
 							return d3.sum(d, function(obs){return obs.count});
-						});
-	var nest3 = d3.nest().key(function(d){return d.FIPS_final})
-						.rollup(function(d){
-							console.log(d);
-							return d3.sum(d.filter(function(obs){
-								return obs.group !== "ALL" && obs.superclus2 != null;
-							}), function(obs){
-								return obs.count;
-							});
 						});
 
 	var nested_data = nest.object(jurisdiction_data); 
 	var nested_sums = nest2.object(jurisdiction_data);
-	var tot_oow = nest3.object(jurisdiction_data);
 
-	var wrap = d3.select(container).classed("makesans",true);
+	var outer_wrap = d3.select(container);
 
-	var title_wrap = wrap.append("div").classed("c-fix",true).style("vertical-align","bottom").style("height","2em")
+	var title_wrap = outer_wrap.append("div").classed("c-fix",true).style("display","table").style("width","100%");
 
-	var place_title2 = title_wrap.append("p").html("<b>Local distribution of major out-of-work groups</b> | ")
-									   .classed("c-fix",true)
-									   .style("margin-bottom","0.5em")
-									   .style("float","left")
-									   .append("span")
-									   //.style("float","right")
-									   .html("<em>Select a segment to view underlying data</em>")
-									   .style("text-align","right");
+	title_wrap.append("p")
+			  .text("Explore the out-of-work population by jurisdiction")
+			  .classed("cluster-title",true)
+			  .style("display","table-cell");
+
 
 	//var place_title = title_wrap.append("p").style("float","left");
 	
-	var select_wrap = title_wrap.append("div").style("border","1px solid #aaaaaa").style("padding","0.25em").style("float","right").style("margin","0.5em");
+	var select_wrap = title_wrap.append("div")
+								.style("display","table-cell")
+								.style("padding-bottom", "0.75em")
+								.append("div")
+								.style("padding","0.25em 0.25em 0em 0.25em")
+								.style("border-bottom","1px solid #aaaaaa")
+								.style("float","right")
+								;
 
-	var select = select_wrap.append("select");
+	var select = select_wrap.append("select").style("width","100%");
 	var options = select.selectAll("option").data(options_data)
 						.enter().append("option")
 						.attr("value", function(d){return d.FIPS_final})
-						.text(function(d){return d.FIPS_final=="" ? "All jurisdictions" : d.Name_final})
+						.text(function(d){return d.FIPS_final=="AGG" ? "All jurisdictions" : d.Name_final})
 						;
 
+	//graphics
 
+	var wrap = outer_wrap.append("div").classed("makesans",true);
 
+	var tile_wrap = wrap.append("div").classed("basic-tile-row",true);
+	var tile1 = tile_wrap.append("div").classed("basic-tile",true);
+		tile1.append("p").text("Total out-of-work population")
+	var total_out_of_work = tile1.append("p").classed("big-stat",true);
+	var tile2 = tile_wrap.append("div").classed("basic-tile",true);
+		tile2.append("p").text("Out of work share*")
+	var tile2row2 = tile2.append("div");
+	var share_out_of_work = tile2row2.append("p").classed("big-stat",true).style("display","inline-block");
+		tile2.append("p").classed("small-note",true).text("*Of the 25–64 year old civilian, non-insitutionalized population.")
+
+	var shares_data = cluster_data.oow.map(function(d){
+							return {FIPS_final:d.FIPS_final, share:d.count/d.totpop}
+						}).filter(function(d){
+							return !(d.FIPS_final in {"US":1});
+						}).sort(function(a,b){
+							return b.share - a.share;
+						});
+	var max_share = d3.max(shares_data, function(d){return d.share});
+	var max_share_height = 40;
+	var share_distro = tile2row2
+								.append("div")
+								.style("display","inline-block")
+								.style("width","140px")
+								.style("margin-top","5px")
+								.style("height",max_share_height+"px")
+								.style("vertical-align","top")
+								.append("svg")
+								.attr("width","100%")
+								.attr("height","100%")
+								.selectAll("rect")
+								.data(shares_data)
+								.enter()
+								.append("rect")
+								.attr("x",function(d,i){return i})
+								.attr("y",function(d,i){return max_share_height-(max_share_height*d.share/max_share)})
+								.attr("width","1px")
+								.attr("height", function(d){return max_share_height*d.share/max_share})
+								.attr("stroke-width","0")
+								.attr("fill","#555555")
+								;
+
+	var top_title = wrap.append("p").style("margin","0em 0em 0.5em 0em");
+	var place_title = top_title.append("span")
+				 .style("font-weight","bold")
+				 .text("Distribution of major out-of-work groups in ")
+				 .append("span")
+				 ;
+   	top_title.append("span").html(" | <em>Select a segment to view underlying data</em>")
+
+									   ;
 	var svg = wrap.append("svg").attr("width","100%").attr("height","50px");
 
 	function draw(id){
 		var dat = nested_data[id];
 		var sums = nested_sums[id];
-		
-		var tot = tot_oow[id];
+
+		var oow = cluster_data.oow.filter(function(d){return d.FIPS_final==id});
+
+		if(oow.length != 1){
+			alert("Data error, please reload");
+		}
+
+		share_distro.attr("fill",function(d){return d.FIPS_final==id ? "#dc2a2a" : "#dddddd"})
+
+		var tot = oow[0].count;
+		var share = tot/oow[0].totpop;
+		//console.log(oow);
+
+		total_out_of_work.text(format.num0(tot));
+		share_out_of_work.text(format.sh1(share));
+
 		//rect_data should look like: [{count:x, share:count/total, id:superclus2}]
 		var rect_data = [1,2,3,4,5,6,7].map(function(d,i){
 			
@@ -82,12 +143,31 @@ export default function jurisdiction_profiles(container){
 			return r;
 		});
 
-		sc_stacker.stack(rect_data, svg);
-		
-		var place = id=="" ? "All jurisdictions" : place_lookup[id];
-		//place_title.text(place);
-		//place_title2.text(place);
+		sc_stacker.stack(rect_data, svg, function(superclus2){
+			var color = sc_stacker.color(superclus2);
+			var title = sc_stacker.title(superclus2);
+			if(superclus2=="ALL"){
+				var D = oow;
+			}
+			else{
+				var D = dat[superclus2];
+			}
+			draw_profile(D, title, color);
+		});
 
+		//initialize with the overall out of work data
+		draw_profile(oow, sc_stacker.title("ALL"), sc_stacker.color("ALL"));
+		
+		var place = id=="AGG" ? "all jurisdictions" : place_lookup[id];
+		place_title.text(place);
+		//place_title2.text(place);
+	}
+
+	//charts, etc
+	function draw_profile(data, title, color){
+		console.log(data);
+		//console.log(title);
+		//console.log(color);
 	}
 
 	draw(options_data[0].FIPS_final);
@@ -96,6 +176,27 @@ export default function jurisdiction_profiles(container){
 		var id = this.value;
 		draw(id);
 	});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -116,7 +217,7 @@ export default function jurisdiction_profiles(container){
 					 ;
 
 	slides.each(function(d,i){
-		console.log(d);
+		//console.log(d);
 
 		var thiz = d3.select(this);
 
@@ -301,7 +402,7 @@ export default function jurisdiction_profiles(container){
 						{label:"45–44", value:d.a4554}, 
 						{label:"55–64", value:d.a5564}]
 						;
-						console.log(vals);
+						//console.log(vals);
 			chartWidget("Age", vals, false, chartWrap1);
 		})();
 

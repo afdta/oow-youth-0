@@ -317,6 +317,38 @@ div.subway-tile > div.tile-header > div.dot > p{
   color:#ffffff;
 }
 
+div.basic-tile-row, div.basic-tile-wrap{
+  content:""; 
+  display:table; 
+  clear:both; 
+  margin:2em 0em 1em 0em;
+}
+
+div.basic-tile{
+  float:left;
+  padding:1em 2em 1em 0em;
+  display:table-cell;
+}
+
+div.basic-tile > p:first-child{
+  margin:0em 0em 0.5em 0em;
+  padding:0em 10px 0.25em 10px;
+  border-bottom:1px solid #dddddd;
+}
+div.basic-tile p.big-stat{
+  font-size:3em;
+  font-weight:bold;
+  margin:0em 10px 0.1em 10px;
+}
+
+div.basic-tile > p.small-note{
+  font-size:0.8em;
+  font-weight:normal;
+  color:#555555;
+  max-width:220px;
+  margin:0em 10px 0.25em 10px;
+}
+
 div.supercluster-profile{
   margin:3em 0em 6em 0em;
   border-bottom:1px solid #aaaaaa;
