@@ -16,6 +16,7 @@ import scroll_show from './scroll-show.js';
 import supercluster_profiles from './supercluster_profiles.js';
 import jurisdiction_profiles from './jurisdiction_profiles.js';
 import header from './header.js';
+import interventions from './interventions.js';
 
 dir.local("./").add("data")
 //dir.add("data", "outof-work/data");
@@ -26,7 +27,7 @@ function main(){
 	funnel(document.getElementById("view0-wrap"));
 	supercluster_profiles(document.getElementById("view2-wrap"));
 	jurisdiction_profiles(document.getElementById("view3-wrap"));
-
+	interventions().grid(document.getElementById("interventions-grid"));
 
 	//build out header
 	var mhead = header()

@@ -355,7 +355,7 @@ div.supercluster-profile{
   min-height:90vh;
 }
 
-div.supercluster-profile .chart-widget{
+div .chart-widget{
   margin:0em 0em 1em 0em;
 }
 
@@ -398,4 +398,12 @@ div.avatar-profile .avatar-text p{
   outline:none;
   height:100%;
   font-weight:bold;
+}
+
+div.center-child-div{
+  text-align:center;
+}
+
+div.center-child-div > div{
+  display:inline-block;
 }

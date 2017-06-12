@@ -864,6 +864,8 @@ function sc_stack(){
 				});
 
 				text_num_fixed = selected_superclus == "ALL" ? false : i;
+				text_num_fixed = false; //never fix, for now
+				
 				text_nums.style("visibility", function(d,j){
 					return j==i ? "visible" : "hidden";
 				});
@@ -886,7 +888,7 @@ function sc_stack(){
 
 		rectsG.on("mouseleave",function(d,i){
 			text_nums.style("visibility", function(d,j){
-				return j==text_num_fixed ? "visible" : "hidden";
+				return j===text_num_fixed ? "visible" : "hidden";
 			});			
 		});
 	};
@@ -894,12 +896,185 @@ function sc_stack(){
 	return sc;
 }
 
-function bar_charts(d, wrap, COLOR){
+function bar_charts(input_datarray, wrap, col){
+	var color = arguments.length > 2 ? col : "#444444";
+	wrap.selectAll("div").remove();
 
 	var chartWrap1 = wrap.append("div").style("float", "left").style("margin","3em 2em 0em 0em");
 	var chartWrap2 = wrap.append("div").style("float", "left").style("margin","3em 2em 0em 0em");
 
+	var datarray_ = [].concat(input_datarray);
+	//datarray: an array of data objects
+
+	var data_stacker = function(keys, labels){
+		var datarray = datarray_.slice(0);
+		var tot = d3.sum(datarray, function(d){return d.count});
+		
+		var wrought = keys.map(function(key,i){
+			var obs = {};
+			obs.variable = key;
+			obs.varlabel = labels[i];
+			for(var j=0; j<datarray.length; j++){
+				obs["group_share"+j] = datarray[j][key];
+				obs["share"+j] = datarray[j][key]*datarray[j].count / tot;
+				obs["count"+j] = datarray[j][key]*datarray[j].count;
+			}
+			return obs;
+		});
+
+		var countKeys = d3.range(0, datarray.length).map(function(d){return "count"+d});
+
+		var stacked = d3.stack().keys(countKeys)(wrought);
+
+		var scale = d3.scaleLinear().domain([0,tot]).range([0,0.9]);
+
+		return {raw: wrought, stacked:stacked, total:tot, scale:scale, nbars:keys.length, binary:false, labels:labels};
+	};
+
+	//a special case data stacker that takes a single key and returns a stack:
+	// [[group_a0, group_a1], [group_b0, group_b1]] where group_a is yes, group_b is no (1-yes)
+	var data_stacker2 = function(key, keylabel, otherlabel){
+		var datarray = datarray_.slice(0);
+		var tot = d3.sum(datarray, function(d){return d.count});
+		var map1 = datarray.map(function(d,i){
+			var group = {id:"count"+i};
+			group.yes = d[key]*d.count;
+			group.no = (1-d[key])*d.count;
+			return group;
+		});
+
+		//do the stacking
+		var cumulative = {yes:0, no:d3.sum(map1, function(d){return d.yes})};
+		var map2 = map1.map(function(d,i){
+			//[yes, no]
+			var new_yes_top = cumulative.yes+d.yes;
+			var new_no_top = cumulative.no+d.no;
+			var group = [[cumulative.yes, new_yes_top],
+						 [cumulative.no, new_no_top]];
+			cumulative.yes = new_yes_top;
+			cumulative.no = new_no_top;
+			group.id = d.id;
+			return group;
+		});
+
+		var scale = d3.scaleLinear().domain([0,tot]).range([0,0.9]);
+
+		return {raw:map1, stacked:map2, total:tot, scale:scale, nbars:1, binary:true, labels:null};
+	};
+
+	var chartWidget = function(title, data, wrapper){
+		//var bars = data.filter(function(d){return d.value >= 0.0045});
+		//var colScale = d3.interpolateLab("#eeeeee", COLOR);
+		var bars = data.stack;
+		var wrap = wrapper.append("div").classed("chart-widget", true);
+		wrap.append("p").html(title)
+						.style("margin","0em 0em 0.5em 0em")
+						.style("padding","0px 10px 0.25em 10px")
+						.style("border-bottom","1px dotted " + color);
+						//.style("font-weight","bold");
+		
+		var outer_svg = wrap.append("svg").style("overflow","visible");
+		var svg = outer_svg.append("svg").style("overflow","visible");
+		var labels = outer_svg.append("g");
+		var yaxis = labels.append("line").attr("x1","0")
+										 .attr("x2","0")
+										 .attr("y1","0%")
+										 .attr("y2","100%")
+										 .attr("stroke","#555555")
+										 .style("shape-rendering","crispEdges")
+										 .style("visibility","hidden");
+		
+		var bar_height = 15;
+		var pad = 5;
+		var w = 320;
+		var label_width = 100;
+		var h = data.nbars*bar_height + data.nbars + (2*pad);
+		
+		if(data.labels !== null){
+			var l0 = labels.selectAll("text").data(data.labels);
+			l0.exit().remove();
+			var l1 = l0.enter().append("text").merge(l0);
+
+			l1.text(function(d){return d})
+				.attr("text-anchor","end")
+				.attr("x","0")
+				.attr("y", function(d,i){
+					return pad+(i*(bar_height+1))
+				})
+				.attr("dx","-5px")
+				.attr("dy",12)
+				.text(function(d){
+					return d;
+				})
+				.style("fill","#555555")
+				.style("font-size","15px")
+				;
+			labels.attr("transform","translate("+label_width+",0)");
+			yaxis.style("visibility","visible");
+		}		
+
+		outer_svg.attr("width",w+"px").attr("height",h+"px");
+		svg.attr("height","100%")
+		   .attr("width", data.labels !== null ? (w-label_width)+"px" : w+"px")
+		   .attr("x", data.labels !== null ? label_width+"px" : "0px")
+		   ;
+
+		var groups0 = svg.selectAll("g.group").data(data.stacked);
+			groups0.exit().remove();
+		var groups = groups0.enter()
+							.append("g")
+							.classed("group",true)
+							.merge(groups0);
+
+		var rects0 = groups.selectAll("rect").data(function(d){return d});
+			rects0.exit().remove();
+		var rects = rects0.enter()
+						  .append("rect")
+						  .merge(rects0)
+						  .attr("x", function(d){return (100*data.scale(d[0]))+"%" })
+						  .attr("y", function(d,i){return data.binary ? pad : pad+(i*(bar_height+1))})
+						  .attr("height", bar_height)
+						  .attr("width", function(d){return (100*(data.scale(d[1])-data.scale(d[0])))+"%" })
+						  .attr("fill", color)
+						  .attr("fill-opacity", function(d,i){
+						  	//if it's a binary stack, the second obs in each group is the "no" (1-"yes")
+						  	return data.binary && i==1 ? 0.35 : 1;
+						  })
+						  .attr("stroke", "#ffffff")
+						  .style("shape-rendering","crispEdges");
+	};
+
+	var age_data = data_stacker(["a2534","a3544","a4554","a5564"], ["25–34","35–44","45–44","55–64"]);
+	var edu_data = data_stacker(["lths","hs","sc","aa","baplus"],["<HS","HS","Some college","Associate's","BA+"]);
+	var race_data = data_stacker(["whiteNH","blackNH","latino","asianNH","otherNH"],
+								 ["White",  "Black",  "Latino","Asian",  "Other"]);
+
+	console.log(age_data);
+
+	var sex_data = data_stacker2("male", "Male", "Female");
+	var disability_data = data_stacker2("dis", "Disabled", "Not disabled");
+	var lep_data = data_stacker2("lep", "LEP", "Non-LEP");
+	var children_data = data_stacker2("children", "One or more", "None");
+	var looking_data = data_stacker2("unemployed", "Looking", "Not looking");
+
+	chartWidget("Age", age_data, chartWrap1);
+	chartWidget("Educational attainment", edu_data, chartWrap1);
+	chartWidget("Race", race_data, chartWrap1);	
+
+	chartWidget("Male share", sex_data, chartWrap2);
+	chartWidget("Disability status", disability_data, chartWrap2);
+	chartWidget("Limited English proficiency (LEP)", lep_data, chartWrap2);
+	chartWidget("Is caring for children", children_data, chartWrap2);
+	chartWidget("Looking for work", looking_data, chartWrap2);
+
+
+	return null;
+
+
+	//deprecated...
 	var age_data = function(){
+
+
 						return [{label:"25–34", value:d.a2534}, 
 								{label:"35–44", value:d.a3544}, 
 								{label:"45–44", value:d.a4554}, 
@@ -907,25 +1082,31 @@ function bar_charts(d, wrap, COLOR){
 					};
 
 	var edu_data = function(){
-			return [{label:"In school", value:d.insch}, 
+			var D = [//{label:"In school", value:d.insch}, 
 					{label:"<HS", value:d.lths}, 
 					{label:"HS", value:d.hs}, 
 					{label:"Some college", value:d.sc}, 
 					{label:"Associate's", value:d.aa},
 					{label:"BA+", value:d.baplus}];
+					//console.log(d3.sum(D, function(d){return d.value}));
+			return D;
 		};
 
 	var race_data = function(){
-			return [{label:"White", value:d.whiteNH}, 
+			var D = [{label:"White", value:d.whiteNH}, 
 					{label:"Black", value:d.blackNH}, 
 					{label:"Hispanic", value:d.latino}, 
 					{label:"Asian", value:d.asianNH},
-					{label:"Other", value:d.otherNH}];				
+					{label:"Other", value:d.otherNH}];
+					//console.log(d3.sum(D, function(d){return d.value}));	
+			return D;			
 		};
 
 	var sex_data = function(){
-			return [{label:"Male", value:d.male}, 
-					{label:"Female", value:1-d.male}];		
+			var D = [{label:"Male", value:d.male}, 
+					{label:"Female", value:1-d.male}];
+			//console.log(d3.sum(D, function(d){return d.value}));
+			return D		
 		};
 
 	var disability_data = function(){
@@ -951,7 +1132,16 @@ function bar_charts(d, wrap, COLOR){
 					];
 		};
 
-	var chartWidget = function(title, data, stacked, wrapper){
+		//Worked in last year
+		//(function(){
+		//	var vals = [{label:"Yes", value:d.lastworked_pastyr}, 
+		//				{label:"No", value:1-d.lastworked_pastyr}
+		//				]
+		//				;
+		//	chartWidget("Worked in the last year", vals, true);
+		//})();
+
+	var chartWidgetDeprecated = function(title, data, stacked, wrapper){
 			var stack = arguments.length > 2 ? !!stacked : false;
 			var bars = data.filter(function(d){return d.value >= 0.0045});
 			var colScale = d3.interpolateLab("#eeeeee", COLOR);
@@ -1078,7 +1268,9 @@ function supercluster_profiles(container){
 						  .style("width","100%")
 						  .classed("makesans c-fix",true);
 
-		bar_charts(d, content, COLOR);
+		var bar_chart_wrap = content.append("div").style("float","left");
+
+		bar_charts(d, bar_chart_wrap, COLOR);
 
 		var textWrap = content.append("div")
 								.style("float","right")
@@ -1114,24 +1306,6 @@ function supercluster_profiles(container){
 								  .append("p")
 								  .text("Avatar2 is ... [Description here...] Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin blandit malesuada erat, eu scelerisque orci aliquet sagittis. Vivamus iaculis, risus at finibus commodo, lorem leo suscipit ligula, eget vestibulum turpis lectus a arcu. Pellentesque elementum ex vitae risus maximus maximus eu sit amet mauris.");
 
-
-
-		//var subtitle = content.append("p").style("line-height","1.5em");
-		//	subtitle.append("span").html("• " + format.num0(d.count) + " out-of-work <br />");
-		//	subtitle.append("span").html("• " + format.sh1(d.count/tot_oow) + " of the out-of-work in 137 jurisdictions");  
-		
-
-		
-
-		//Worked in last year
-		//(function(){
-		//	var vals = [{label:"Yes", value:d.lastworked_pastyr}, 
-		//				{label:"No", value:1-d.lastworked_pastyr}
-		//				]
-		//				;
-		//	chartWidget("Worked in the last year", vals, true);
-		//})();
-
 	});
 
 }
@@ -1160,14 +1334,24 @@ function jurisdiction_profiles(container){
 	var nested_data = nest.object(jurisdiction_data); 
 	var nested_sums = nest2.object(jurisdiction_data);
 
-	var outer_wrap = d3.select(container);
-
+	var outer_wrap = d3.select(container).classed("makesans c-fix", true);
+	
 	var title_wrap = outer_wrap.append("div").classed("c-fix",true).style("display","table").style("width","100%");
 
-	title_wrap.append("p")
+	var top_title = title_wrap.append("p").style("display","table-cell")
+						.style("margin","0em 0em 0.5em 10px");
+	var place_title = top_title.append("span")
+				 .style("font-weight","bold")
+				 .text("Distribution of major out-of-work groups in ")
+				 .append("span");
+		top_title.append("span").text(" | ");
+
+   	top_title.append("span").html("<em>Select a segment to view underlying data</em>").style("white-space","nowrap");
+
+	/*title_wrap.append("p")
 			  .text("Explore the out-of-work population by jurisdiction")
 			  .classed("cluster-title",true)
-			  .style("display","table-cell");
+			  .style("display","table-cell");*/
 
 
 	//var place_title = title_wrap.append("p").style("float","left");
@@ -1188,13 +1372,25 @@ function jurisdiction_profiles(container){
 
 	//graphics
 
-	var wrap = outer_wrap.append("div").classed("makesans",true);
+	
+	//main stacked bar						   
+	var svg = outer_wrap.append("svg").attr("width","100%").attr("height","50px");
 
-	var tile_wrap = wrap.append("div").classed("basic-tile-row",true);
-	var tile1 = tile_wrap.append("div").classed("basic-tile",true);
+	var wrap = outer_wrap.append("div")
+						 .classed("center-child-div",true)
+						 .append("div")
+						 .classed("c-fix",true);
+
+	//overall data
+	var overall_data = wrap.append("div").style("float","left").style("margin","0em 6em 0em 0em");
+
+	var tile_wrap1 = overall_data.append("div").classed("basic-tile-row",true);
+	var tile1 = tile_wrap1.append("div").classed("basic-tile",true);
 		tile1.append("p").text("Total out-of-work population");
 	var total_out_of_work = tile1.append("p").classed("big-stat",true);
-	var tile2 = tile_wrap.append("div").classed("basic-tile",true);
+	
+	var tile_wrap2 = overall_data.append("div").classed("basic-tile-row",true);
+	var tile2 = tile_wrap2.append("div").classed("basic-tile",true);
 		tile2.append("p").text("Out of work share*");
 	var tile2row2 = tile2.append("div");
 	var share_out_of_work = tile2row2.append("p").classed("big-stat",true).style("display","inline-block");
@@ -1230,15 +1426,9 @@ function jurisdiction_profiles(container){
 								.attr("stroke-width","0")
 								.attr("fill","#555555");
 
-	var top_title = wrap.append("p").style("margin","0em 0em 0.5em 0em");
-	var place_title = top_title.append("span")
-				 .style("font-weight","bold")
-				 .text("Distribution of major out-of-work groups in ")
-				 .append("span");
-   	top_title.append("span").html(" | <em>Select a segment to view underlying data</em>")
 
-									   ;
-	var svg = wrap.append("svg").attr("width","100%").attr("height","50px");
+
+	var bar_chart_wrap = wrap.append("div").style("float","left");
 
 	function draw(id){
 		var dat = nested_data[id];
@@ -1295,9 +1485,9 @@ function jurisdiction_profiles(container){
 
 	//charts, etc
 	function draw_profile(data, title, color){
-		console.log(data);
+		//console.log(data);
 		//console.log(title);
-		//console.log(color);
+		bar_charts(data, bar_chart_wrap, color);
 	}
 
 	draw(options_data[0].FIPS_final);
@@ -1774,6 +1964,139 @@ function header(){
 	return O;
 }
 
+function interventions(){
+	var I = {};
+
+	var descriptions = {};
+
+	descriptions.initials = ["B","T","S","J","I","2","A","X"];
+
+	descriptions.titles = {
+		B:"Bridge programs",
+		T:"Transitional jobs programs",
+		S:"Social enterprises",
+		J:"Job search assistance and case management",
+		I:"Industry or sector-based programs",
+		"2":"Two-generation programs",
+		A:"ASAP (Accelerated Study in Associate Programs)",
+		X:"The 8th one"
+	};
+
+	descriptions.short = {
+		B:["Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse porta purus rutrum tortor gravida, interdum scelerisque enim"],
+		T:["Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse porta purus rutrum tortor gravida, interdum scelerisque enim"],
+		S:["Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse porta purus rutrum tortor gravida, interdum scelerisque enim"],
+		J:["Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse porta purus rutrum tortor gravida, interdum scelerisque enim","Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse porta purus rutrum tortor gravida, interdum scelerisque enim"],
+		I:["Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse porta purus rutrum tortor gravida, interdum scelerisque enim"],
+		"2":["Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse porta purus rutrum tortor gravida, interdum scelerisque enim"],
+		A:["Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse porta purus rutrum tortor gravida, interdum scelerisque enim"],
+		X:["Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse porta purus rutrum tortor gravida, interdum scelerisque enim"]
+	};
+
+	descriptions.long = {
+		B:["Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse porta purus rutrum tortor gravida, interdum scelerisque enim"],
+		T:[],
+		S:[],
+		J:[],
+		I:[],
+		"2":[],
+		A:[],
+		X:[]
+	};
+
+	var body_wrap = d3.select("body");
+	var show = function(id){
+		d3.event.stopPropagation();
+		var fixed = body_wrap.append("div")
+			.style("position","fixed")
+			.style("width","100%")
+			.style("height","100%")
+			.style("z-index","1000")
+			.style("background-color","rgba(5, 55, 105, 0)")
+			.style("top","0px")
+			.style("left","0px");
+		fixed.transition()
+			.style("background-color","rgba(5, 55, 105, 0.95)")
+			;
+
+		var table = fixed.append("div")
+			.style("display","table")
+			.style("max-width","800px")
+			.style("width","90%")
+			.style("height","100%")
+			.style("margin","1em auto");
+		var row = table.append("div")
+			.style("display","table-row");
+		var cell = row.append("div")
+			.style("display","table-cell")
+			.style("vertical-align","middle");
+
+		var box = cell.append("div")
+			.style("border","1px solid #ffffff")
+			.style("position","relative")
+			.style("padding","1em 2em")
+			.classed("reading",true);
+
+			box.selectAll("p")
+				.data(descriptions.long[id])
+				.enter()
+				.append("p")
+				.html(function(d,i){return d})
+				.style("color","#ffffff")
+				.style("font-weight", function(d,i){
+					return i==0 ? "bold" : "normal";
+				});
+
+		var x_height = 30;
+		var x_width = x_height;
+		var xsvg = box.append("div")
+			   .classed("make-sans",true)
+			   .style("position","absolute")
+			   .style("top","-"+x_height+"px")
+			   .style("right","-"+x_width+"px")
+			   .style("width",x_width+"px")
+			   .style("height",x_height+"px")
+			   .append("svg")
+			   .attr("width","100%").attr("height","100%");
+
+			xsvg.append("line").attr("x1","20%").attr("x2","80%").attr("y1","20%").attr("y2","80%");
+			xsvg.append("line").attr("x1","20%").attr("x2","80%").attr("y1","80%").attr("y2","20%");
+
+			xsvg.selectAll("line").attr("stroke","#ffffff")
+									.attr("stroke-width","5px");
+		   
+
+		fixed.on("mousedown", function(d,i){
+			fixed.remove();
+		});
+		//
+	};//end show
+
+
+	//use 1: layout all the interventions in a large grid with text
+	I.grid = function(container){
+		var wrap = d3.select(container);
+
+		var rows = wrap.selectAll("div").data([descriptions.initials.slice(0,4),descriptions.initials.slice(4)])
+							.enter().append("div").classed("c-fix",true).style("margin","2em 0em");
+
+		var tiles = rows.selectAll("div.subway-tile").data(function(d){return d})
+							.enter().append("div").classed("subway-tile",true);
+
+		var headers = tiles.append("div").classed("tile-header",true);
+		var dots = headers.append("div").classed("dot",true).style("cursor","pointer");
+		var dot_labels = dots.append("p").text(function(d){return d});
+
+		dots.on("mousedown", function(d){show(d);});
+
+		var content = tiles.append("div").classed("tile-content reading",true);
+		var text = content.selectAll("p").data(function(d){return descriptions.short[d]})
+							.enter().append("p").text(function(d){return d});
+	};
+
+	return I;
+}
+
 //"out of work" population project, june 2017
 //add browser compat message: test for svg, array.filter and map
 
@@ -1789,7 +2112,7 @@ function main(){
 	funnel(document.getElementById("view0-wrap"));
 	supercluster_profiles(document.getElementById("view2-wrap"));
 	jurisdiction_profiles(document.getElementById("view3-wrap"));
-
+	interventions().grid(document.getElementById("interventions-grid"));
 
 	//build out header
 	var mhead = header()

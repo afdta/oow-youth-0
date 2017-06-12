@@ -67,7 +67,9 @@ export default function supercluster_profiles(container){
 						  .style("width","100%")
 						  .classed("makesans c-fix",true);
 
-		bar_charts(d, content, COLOR);
+		var bar_chart_wrap = content.append("div").style("float","left");
+
+		bar_charts(d, bar_chart_wrap, COLOR);
 
 		var textWrap = content.append("div")
 								.style("float","right")
@@ -105,24 +107,6 @@ export default function supercluster_profiles(container){
 			profile2.append("div").classed("avatar-text reading",true)
 								  .append("p")
 								  .text("Avatar2 is ... [Description here...] Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin blandit malesuada erat, eu scelerisque orci aliquet sagittis. Vivamus iaculis, risus at finibus commodo, lorem leo suscipit ligula, eget vestibulum turpis lectus a arcu. Pellentesque elementum ex vitae risus maximus maximus eu sit amet mauris.")
-
-
-
-		//var subtitle = content.append("p").style("line-height","1.5em");
-		//	subtitle.append("span").html("• " + format.num0(d.count) + " out-of-work <br />");
-		//	subtitle.append("span").html("• " + format.sh1(d.count/tot_oow) + " of the out-of-work in 137 jurisdictions");  
-		
-
-		
-
-		//Worked in last year
-		//(function(){
-		//	var vals = [{label:"Yes", value:d.lastworked_pastyr}, 
-		//				{label:"No", value:1-d.lastworked_pastyr}
-		//				]
-		//				;
-		//	chartWidget("Worked in the last year", vals, true);
-		//})();
 
 	});
 

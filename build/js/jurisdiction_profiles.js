@@ -1,6 +1,7 @@
 import cluster_data from './cluster_data.js';
 import format from '../../../js-modules/formats.js';
 import sc_stack from './sc_stack.js';
+import bar_charts from './bar_charts.js';
 
 export default function jurisdiction_profiles(container){
 	var sc_stacker = sc_stack();
@@ -26,14 +27,25 @@ export default function jurisdiction_profiles(container){
 	var nested_data = nest.object(jurisdiction_data); 
 	var nested_sums = nest2.object(jurisdiction_data);
 
-	var outer_wrap = d3.select(container);
-
+	var outer_wrap = d3.select(container).classed("makesans c-fix", true);
+	
 	var title_wrap = outer_wrap.append("div").classed("c-fix",true).style("display","table").style("width","100%");
 
-	title_wrap.append("p")
+	var top_title = title_wrap.append("p").style("display","table-cell")
+						.style("margin","0em 0em 0.5em 10px");
+	var place_title = top_title.append("span")
+				 .style("font-weight","bold")
+				 .text("Distribution of major out-of-work groups in ")
+				 .append("span")
+				 ;
+		top_title.append("span").text(" | ");
+
+   	top_title.append("span").html("<em>Select a segment to view underlying data</em>").style("white-space","nowrap")
+
+	/*title_wrap.append("p")
 			  .text("Explore the out-of-work population by jurisdiction")
 			  .classed("cluster-title",true)
-			  .style("display","table-cell");
+			  .style("display","table-cell");*/
 
 
 	//var place_title = title_wrap.append("p").style("float","left");
@@ -56,13 +68,26 @@ export default function jurisdiction_profiles(container){
 
 	//graphics
 
-	var wrap = outer_wrap.append("div").classed("makesans",true);
+	
+	//main stacked bar						   
+	var svg = outer_wrap.append("svg").attr("width","100%").attr("height","50px");
 
-	var tile_wrap = wrap.append("div").classed("basic-tile-row",true);
-	var tile1 = tile_wrap.append("div").classed("basic-tile",true);
+	var wrap = outer_wrap.append("div")
+						 .classed("center-child-div",true)
+						 .append("div")
+						 .classed("c-fix",true)
+						 ;
+
+	//overall data
+	var overall_data = wrap.append("div").style("float","left").style("margin","0em 6em 0em 0em");
+
+	var tile_wrap1 = overall_data.append("div").classed("basic-tile-row",true);
+	var tile1 = tile_wrap1.append("div").classed("basic-tile",true);
 		tile1.append("p").text("Total out-of-work population")
 	var total_out_of_work = tile1.append("p").classed("big-stat",true);
-	var tile2 = tile_wrap.append("div").classed("basic-tile",true);
+	
+	var tile_wrap2 = overall_data.append("div").classed("basic-tile-row",true);
+	var tile2 = tile_wrap2.append("div").classed("basic-tile",true);
 		tile2.append("p").text("Out of work share*")
 	var tile2row2 = tile2.append("div");
 	var share_out_of_work = tile2row2.append("p").classed("big-stat",true).style("display","inline-block");
@@ -99,16 +124,9 @@ export default function jurisdiction_profiles(container){
 								.attr("fill","#555555")
 								;
 
-	var top_title = wrap.append("p").style("margin","0em 0em 0.5em 0em");
-	var place_title = top_title.append("span")
-				 .style("font-weight","bold")
-				 .text("Distribution of major out-of-work groups in ")
-				 .append("span")
-				 ;
-   	top_title.append("span").html(" | <em>Select a segment to view underlying data</em>")
 
-									   ;
-	var svg = wrap.append("svg").attr("width","100%").attr("height","50px");
+
+	var bar_chart_wrap = wrap.append("div").style("float","left");
 
 	function draw(id){
 		var dat = nested_data[id];
@@ -165,9 +183,9 @@ export default function jurisdiction_profiles(container){
 
 	//charts, etc
 	function draw_profile(data, title, color){
-		console.log(data);
+		//console.log(data);
 		//console.log(title);
-		//console.log(color);
+		bar_charts(data, bar_chart_wrap, color);
 	}
 
 	draw(options_data[0].FIPS_final);

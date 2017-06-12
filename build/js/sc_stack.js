@@ -141,6 +141,8 @@ export default function sc_stack(){
 				})
 
 				text_num_fixed = selected_superclus == "ALL" ? false : i;
+				text_num_fixed = false; //never fix, for now
+				
 				text_nums.style("visibility", function(d,j){
 					return j==i ? "visible" : "hidden";
 				})
@@ -163,7 +165,7 @@ export default function sc_stack(){
 
 		rectsG.on("mouseleave",function(d,i){
 			text_nums.style("visibility", function(d,j){
-				return j==text_num_fixed ? "visible" : "hidden";
+				return j===text_num_fixed ? "visible" : "hidden";
 			});			
 		});
 	}
