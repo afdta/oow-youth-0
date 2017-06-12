@@ -1049,8 +1049,6 @@ function bar_charts(input_datarray, wrap, col){
 	var race_data = data_stacker(["whiteNH","blackNH","latino","asianNH","otherNH"],
 								 ["White",  "Black",  "Latino","Asian",  "Other"]);
 
-	console.log(age_data);
-
 	var sex_data = data_stacker2("male", "Male", "Female");
 	var disability_data = data_stacker2("dis", "Disabled", "Not disabled");
 	var lep_data = data_stacker2("lep", "LEP", "Non-LEP");
@@ -1310,6 +1308,81 @@ function supercluster_profiles(container){
 
 }
 
+//mapping module
+
+function puma_maps(container){
+	var cluster_title = sc_stack().title;
+
+	var wrap = d3.select(container).classed("c-fix",true);
+
+	//layout function
+	var layout = function(superclus2){
+		var o = {};
+
+		var box = container.getBoundingClientRect();
+		var width = box.right - box.left;
+
+		var w = superclus2 == "ALL" ? Math.floor(width/7) : width;
+		var h = w;
+		var data = superclus2 === "ALL" ? [1,2,3,4,5,6,7] : [superclus2];
+
+		var tiles = wrap.selectAll("div.map-tile").data(data);
+		tiles.exit().remove();
+
+		o.tiles = tiles.enter().append("div").classed("map-tile",true).merge(tiles)
+						.style("float","left")
+						.style("width",w+"px")
+						//.style("height",h+"px")
+						.style("background-color","#eeeeee")
+						.style("border","1px solid #dddddd")
+						;
+
+		o.width = w;
+		o.height = h;
+
+		return o;
+
+	};
+
+	//draw function
+	var draw = function(id, superclus2){
+		var L = layout(superclus2);
+		var file = "data/maps/"+id+".json";
+		var file = "build/data/shapefiles/subsetted/geojson/"+id;
+
+		d3.json(file, function(err, dat){
+			if(err){
+				L.tiles.remove();
+				console.log(err);
+			}
+			else{
+				var extent = [[10,10],[L.width-20, L.height-20]];
+				//var geo = topojson.feature(dat, dat.objects.pumas);
+				var geo = dat;
+				var proj = d3.geoAlbers().fitExtent(extent, geo);
+				var path = d3.geoPath().projection(proj);
+
+				console.log(geo);
+				L.tiles.each(function(d){
+					var thiz = d3.select(this);
+					thiz.select("div").remove();
+					var div = thiz.append("div");
+					var title = div.append("p").text(cluster_title(d));
+					var svg = div.append("svg").attr("height",L.height+"px").attr("width",L.width+"px");
+
+					var puma0 = svg.selectAll("path").data(geo.features);
+					puma0.exit().remove();
+					puma0.enter().append("path").merge(puma0).attr("fill","#dddddd").attr("stroke","#333333").attr("d",path);
+
+				});	
+			}
+		});
+
+	};
+
+	return draw;
+}
+
 function jurisdiction_profiles(container){
 	var sc_stacker = sc_stack();
 	var jurisdiction_data = cluster_data.jurisdiction;
@@ -1430,6 +1503,10 @@ function jurisdiction_profiles(container){
 
 	var bar_chart_wrap = wrap.append("div").style("float","left");
 
+	var map_wrap = outer_wrap.append("div").style("width","100%").style("min-height","400px");
+
+	var draw_puma_maps = puma_maps(map_wrap.node());
+
 	function draw(id){
 		var dat = nested_data[id];
 		var sums = nested_sums[id];
@@ -1473,10 +1550,12 @@ function jurisdiction_profiles(container){
 				var D = dat[superclus2];
 			}
 			draw_profile(D, title, color);
+			draw_puma_maps(id, superclus2);
 		});
 
 		//initialize with the overall out of work data
 		draw_profile(oow, sc_stacker.title("ALL"), sc_stacker.color("ALL"));
+		draw_puma_maps(id, "ALL");
 		
 		var place = id=="AGG" ? "all jurisdictions" : place_lookup[id];
 		place_title.text(place);

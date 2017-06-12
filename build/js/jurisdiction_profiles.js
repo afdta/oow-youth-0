@@ -2,6 +2,7 @@ import cluster_data from './cluster_data.js';
 import format from '../../../js-modules/formats.js';
 import sc_stack from './sc_stack.js';
 import bar_charts from './bar_charts.js';
+import puma_maps from './puma_maps.js';
 
 export default function jurisdiction_profiles(container){
 	var sc_stacker = sc_stack();
@@ -128,6 +129,10 @@ export default function jurisdiction_profiles(container){
 
 	var bar_chart_wrap = wrap.append("div").style("float","left");
 
+	var map_wrap = outer_wrap.append("div").style("width","100%").style("min-height","400px");
+
+	var draw_puma_maps = puma_maps(map_wrap.node());
+
 	function draw(id){
 		var dat = nested_data[id];
 		var sums = nested_sums[id];
@@ -171,10 +176,12 @@ export default function jurisdiction_profiles(container){
 				var D = dat[superclus2];
 			}
 			draw_profile(D, title, color);
+			draw_puma_maps(id, superclus2);
 		});
 
 		//initialize with the overall out of work data
 		draw_profile(oow, sc_stacker.title("ALL"), sc_stacker.color("ALL"));
+		draw_puma_maps(id, "ALL");
 		
 		var place = id=="AGG" ? "all jurisdictions" : place_lookup[id];
 		place_title.text(place);

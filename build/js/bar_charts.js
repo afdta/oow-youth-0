@@ -153,8 +153,6 @@ export default function bar_charts(input_datarray, wrap, col){
 	var race_data = data_stacker(["whiteNH","blackNH","latino","asianNH","otherNH"],
 								 ["White",  "Black",  "Latino","Asian",  "Other"]);
 
-	console.log(age_data);
-
 	var sex_data = data_stacker2("male", "Male", "Female");
 	var disability_data = data_stacker2("dis", "Disabled", "Not disabled");
 	var lep_data = data_stacker2("lep", "LEP", "Non-LEP");
