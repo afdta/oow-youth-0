@@ -18,7 +18,7 @@ export default function sc_stack(){
 	var sc = {};
 
 	sc.color = function(superclus){
-		if(superclus == "ALL"){
+		if(superclus == "ALL" || superclus == null){
 			return colors[0];
 		}
 		else{
@@ -27,7 +27,7 @@ export default function sc_stack(){
 	}
 
 	sc.title = function(superclus){
-		if(superclus == "ALL"){
+		if(superclus == "ALL" || superclus == null){
 			return titles[0];
 		}
 		else{
@@ -36,7 +36,7 @@ export default function sc_stack(){
 	}
 
 	//rect_data should look like: [{count:x, share:count/total, id:superclus2}]
-	sc.stack = function(rect_data, svg, rect_callback){
+	sc.stack = function(rect_data, svg, rect_callback, add_borders, highlight){
 		var cumulative = 0;
 		rect_data.forEach(function(d,i,a){
 			d.cumulative = cumulative;
@@ -47,8 +47,8 @@ export default function sc_stack(){
 
 		var transition_duration = 1000;	
 
-		var rectsG0 = svg.selectAll("g.rect-g").data(rect_data, function(d){return d.id});
-			rectsG0.exit().remove();
+		var rectsG0 = svg.selectAll("g.rect-g").data(rect_data, function(d){return d.mergeid});
+			rectsG0.exit().transition().duration(1000).style("opacity","0").on("end", function(){d3.select(this).remove()});
 		var rectsG = rectsG0.enter().append("g").classed("rect-g",true).merge(rectsG0).style("pointer-events","all");
 
 		var rects0 = rectsG.selectAll("rect").data(function(d){return [d,d]});
@@ -59,7 +59,7 @@ export default function sc_stack(){
 						.style("shape-rendering","crispEdges")
 						.style("stroke","#eeeeee")
 						.style("stroke-width","0")
-						.style("visibility",function(d,i){return i==1 ? "visible" : "hidden"})
+						.style("visibility",function(d,i){return i==1 ? "visible" : (d.id==highlight ? "visible" : "hidden")})
 						;
 
 			rects.transition()
@@ -131,13 +131,21 @@ export default function sc_stack(){
 								;
 
 		var text_num_fixed = false;
-		if(arguments.length > 2){
-			var selected_superclus = "ALL"
+		if(arguments.length > 2 && typeof rect_callback == "function"){
+			var selected_superclus = null;
+			var selected_group = null;
 			rectsG.on("mousedown", function(d,i){
-				selected_superclus = d.id == selected_superclus ? "ALL" : d.id;
+				if(d.id === selected_superclus && d.group === selected_group){
+					selected_superclus = null;
+					selected_group = null;
+				}
+				else{
+					selected_superclus = d.id;
+					selected_group = d.group;
+				}
 
 				rectsG.selectAll("rect").filter(function(d,i){return i==0}).style("visibility", function(d,i){
-					return d.id==selected_superclus ? "visible" : "hidden";
+					return d.id===selected_superclus && d.group===selected_group ? "visible" : "hidden";
 				})
 
 				text_num_fixed = selected_superclus == "ALL" ? false : i;
@@ -153,7 +161,7 @@ export default function sc_stack(){
 				//		return d3.color(sc.color(d.id)).darker();
 				//	}).raise();
 				//}
-				rect_callback(selected_superclus);
+				rect_callback(selected_superclus, selected_group, d);
 			}).style("cursor","pointer");
 		}
 
@@ -168,6 +176,29 @@ export default function sc_stack(){
 				return j===text_num_fixed ? "visible" : "hidden";
 			});			
 		});
+
+		if(!!add_borders){
+			var lines0 = svg.selectAll("line").data(rect_data, function(d){return d.mergeid});
+			lines0.exit().remove();
+			lines0.enter().append("line")
+					.merge(lines0)
+					.attr("y1","-5%").attr("y2","105%")
+					.attr("stroke","#ffffff")
+					.attr("stroke-width","1px")
+					.style("shape-rendering","auto")
+					.transition()
+					.duration(transition_duration)
+					.attr("x1", function(d){
+						return ((d.cumulative+d.share)*100)+"%";
+					})
+					.attr("x2", function(d){
+						return ((d.cumulative+d.share)*100)+"%";
+					})
+					.on("end",function(d){
+						d3.select(this).style("shape-rendering","crispEdges")
+					})
+					;
+		}
 	}
 
 	return sc;

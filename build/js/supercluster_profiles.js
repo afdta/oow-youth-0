@@ -31,7 +31,7 @@ export default function supercluster_profiles(container){
 		var COLOR = sc_stacker.color(d.superclus2);
 		//thiz.append("div").classed("h-border",true);
 		//console.log(d);
-		var title_box = thiz.append("div");
+		var title_box = thiz.append("div").style("margin-bottom","1em");
 		var title = title_box.append("p")
 							 .classed("cluster-title",true);
 			
@@ -42,8 +42,11 @@ export default function supercluster_profiles(container){
 		var svg = title_box.append("svg").style("width", "100%").style("height","50px");
 
 		var rect_data = supercluster_profile_data.map(function(d){
-			return {count: d.count, id:d.superclus2, share:d.count/tot_oow}
-		}).sort(function(a,b){
+			return {count: d.count, id:d.superclus2, mergeid:d.superclus2, group:null, share:d.count/tot_oow}
+		})
+
+		//don't re-sort...
+		/*.sort(function(a,b){
 			var compare = 0;
 			if(a.id==d.superclus2){
 				compare = -1;
@@ -55,9 +58,9 @@ export default function supercluster_profiles(container){
 				compare = a.id - b.id;
 			}
 			return compare;
-		});
+		});*/
 
-		sc_stacker.stack(rect_data, svg);
+		sc_stacker.stack(rect_data, svg, null, true, d.superclus2);
 		
 
 		var content = thiz.append("div")

@@ -2,8 +2,8 @@ export default function bar_charts(input_datarray, wrap, col){
 	var color = arguments.length > 2 ? col : "#444444";
 	wrap.selectAll("div").remove();
 
-	var chartWrap1 = wrap.append("div").style("float", "left").style("margin","3em 2em 0em 0em");
-	var chartWrap2 = wrap.append("div").style("float", "left").style("margin","3em 2em 0em 0em");
+	var chartWrap1 = wrap.append("div").style("float", "left").style("margin","2em 2em 0em 0em");
+	var chartWrap2 = wrap.append("div").style("float", "left").style("margin","2em 2em 0em 0em");
 
 	var datarray_ = [].concat(input_datarray);
 	//datarray: an array of data objects

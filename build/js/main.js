@@ -26,7 +26,7 @@ function main(){
 
 	funnel(document.getElementById("view0-wrap"));
 	supercluster_profiles(document.getElementById("view2-wrap"));
-	jurisdiction_profiles(document.getElementById("view3-wrap"));
+	jurisdiction_profiles(document.getElementById("jurisdiction-profile"));
 	interventions().grid(document.getElementById("interventions-grid"));
 
 	//build out header

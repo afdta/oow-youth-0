@@ -321,7 +321,7 @@ div.basic-tile-row, div.basic-tile-wrap{
   content:""; 
   display:table; 
   clear:both; 
-  margin:2em 0em 1em 0em;
+  margin:1em 0em 1em 0em;
 }
 
 div.basic-tile{
@@ -406,4 +406,17 @@ div.center-child-div{
 
 div.center-child-div > div{
   display:inline-block;
+  text-align:left;
+}
+
+.font1x{
+  font-size:1.2em;
+}
+
+.font2x{
+  font-size:1.6em;
+}
+
+.font3x{
+  font-size:2em;
 }
