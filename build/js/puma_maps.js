@@ -40,7 +40,7 @@ export default function puma_maps(container){
 	var draw = function(id, superclus2){
 		var L = layout(superclus2);
 		var file = "data/maps/"+id+".json";
-		var file = "build/data/shapefiles/subsetted/geojson/"+id;
+		//var file = "build/data/shapefiles/subsetted/geojson/"+id;
 
 		d3.json(file, function(err, dat){
 			if(err){
@@ -49,8 +49,8 @@ export default function puma_maps(container){
 			}
 			else{
 				var extent = [[10,10],[L.width-20, L.height-20]];
-				//var geo = topojson.feature(dat, dat.objects.pumas);
-				var geo = dat;
+				var geo = topojson.feature(dat, dat.objects.pumas);
+
 				var proj = d3.geoAlbers().fitExtent(extent, geo);
 				var path = d3.geoPath().projection(proj);
 

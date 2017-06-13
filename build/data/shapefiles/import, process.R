@@ -7,12 +7,9 @@ distribution <- read.csv("supercluster distribution by geo.csv", stringsAsFactor
   gather(superclus, share, supercluster_pct1:supercluster_pct7) %>%
   separate(superclus, c("level","superclus2"), "_pct", convert=TRUE)
 
-xwalk <- read.csv("PUMA to geo xwalk.csv", stringsAsFactors=FALSE, colClasses=c(stpuma="character"))
-
 pumadat <- read.csv("cluster, supercluster distribution by puma.csv", stringsAsFactors=FALSE, colClasses=c(stpuma="character"))
 pumadat2 <- pumadat[c(1,3,6:12)]
 names(pumadat2) <- sub("pct_supercluster", "sc", names(pumadat2))
-
 
 #ff <- unique(xwalk[c("FIPS_final", "display_geo")])
 
@@ -21,10 +18,14 @@ names(pumadat2) <- sub("pct_supercluster", "sc", names(pumadat2))
 #- higgins geos is a shapefile of PUMAs aggregated to the geos of interest
 
 sp1 <- readOGR("/home/alec/Projects/Brookings/out-of-work/build/data/shapefiles", layer="mergedshapefile")
-higgins <-readOGR("/home/alec/Projects/Brookings/out-of-work/build/data/shapefiles", layer="higgins geos")
-places <-readOGR("/home/alec/Projects/Brookings/out-of-work/build/data/shapefiles", layer="Export_Output")
+#higgins <-readOGR("/home/alec/Projects/Brookings/out-of-work/build/data/shapefiles", layer="higgins geos")
+#places <-readOGR("/home/alec/Projects/Brookings/out-of-work/build/data/shapefiles", layer="Export_Output")
 
 sp2 <- merge(sp1, pumadat2, by.x="GEOID10", by.y="stpuma", all.x=FALSE)[c(1,11:18)]
+
+pumadat3 <- sp2@data
+test <- merge(pumadat3, pumadat2, by.x=c("GEOID10", "FIPS_final"), by.y=c("stpuma", "FIPS_final"))
+all.equal(test[3:9],test[10:16])
 
 #write out shapefiles
 places <- unique(sp2@data$FIPS_final)
@@ -33,7 +34,7 @@ makeWriteShp <- function(place_input){
   place <- as.character(place_input)
   g <- sp2[as.character(sp2@data$FIPS_final)==place & !is.na(sp2@data$FIPS_final),]
   writeOGR(g, "/home/alec/Projects/Brookings/out-of-work/build/data/shapefiles/subsetted/esri/", place, driver="ESRI Shapefile")
-  writeOGR(g, paste0("/home/alec/Projects/Brookings/out-of-work/build/data/shapefiles/subsetted/geojson/",place), "puma", driver="GeoJSON")
+  #writeOGR(g, paste0("/home/alec/Projects/Brookings/out-of-work/build/data/shapefiles/subsetted/geojson/",place), "puma", driver="GeoJSON")
 }
 
 for(p in places){

@@ -41,15 +41,13 @@ do
 shp2json $folder/esri/$var.shp -o $folder/geojson/$var.json
 
 #convert to topojson
-#geo2topo pumas=$folder/geojson/$var.json > $folder/topojson/$var.json
-geo2topo pumas=$folder/geojson/$var.json > /home/alec/Projects/Brookings/out-of-work/data/maps/$var.json
-#geo2topo pumas=$folder/geojson/$var.json > /home/alec/Projects/Brookings/out-of-work/data/maps/$var.json
+geo2topo pumas=$folder/geojson/$var.json > $folder/topojson/$var.json
 
 #simplify
-#toposimplify -s 0.00000000175 -f < $folder/topojson/$var.json > $folder/topojson/${var}_simple.json
+toposimplify -s 0.0000000175 -f < $folder/topojson/$var.json > $folder/topojson/${var}_simple.json
 
 #quantize
-#topoquantize 1e5 $folder/topojson/${var}_simple.json > /home/alec/Projects/Brookings/out-of-work/data/maps/$var.json
+topoquantize 1e5 $folder/topojson/${var}_simple.json > /home/alec/Projects/Brookings/out-of-work/data/maps/$var.json
 
 #view output
 #back to topojson
