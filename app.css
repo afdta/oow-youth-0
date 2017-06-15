@@ -85,7 +85,6 @@ p:first-child strong{
 }
 
 div.reading{
-  width:75%;
   max-width:1200px;
   min-width:320px;
   margin:0em 0em 2em 0em;
@@ -94,10 +93,34 @@ div.reading{
 div.reading.centered{
   margin-right:auto;
   margin-left:auto;
-  max-width:610px;
+  max-width:900px;
 }
 
-div.reading > *{max-width:800px;line-height:1.6em;}
+div.floated-map{
+  float:right;
+  min-width:320px;
+  max-width:480px;
+  width:45%;
+  margin:1em 0em 2em 2em;
+}
+
+div.floated-map a{
+  display:block;
+  width:100%;
+}
+
+div.floated-map img{
+  width:100%;
+  height:auto;
+}
+
+div.reading.centered p{
+  max-width:680px;
+  margin-right:auto;
+  margin-left:auto;
+}
+
+div.reading > *{line-height:1.6em;}
 div.reading > p, div.reading > ul{max-width:800px;}
 
 div.header-box{
@@ -150,6 +173,17 @@ p.cluster-title div{
 }
 p.cluster-title span{
   vertical-align: middle;
+}
+
+p.cluster-title.bordered{
+  font-weight:bold;
+  font-size: 1.75em;
+
+  margin:4em 0em 1em 0em;
+
+  padding: 0em 0em 0.35em 0em;
+  border-bottom: 1px solid #aaaaaa;
+  text-align:center;
 }
 
 .divdot{
@@ -313,7 +347,7 @@ div .chart-widget{
 }
 
 div.avatar-profile{
-  padding:1em 0em 0em 0em;
+  padding:0.5em 0em 0em 0em;
   width:45%;
   float:left;
   border-top:1px solid #aaaaaa;
@@ -322,7 +356,7 @@ div.avatar-profile{
 div.avatar-profile .avatar{
   float:left;
   height:auto;
-  width:28%;
+  width:29%;
   min-width:130px;
   padding-right:2em;
 }
@@ -334,6 +368,7 @@ div.avatar-profile .avatar img{
 }
 
 div.avatar-profile .avatar-text{
+  margin-top:0.5em;
   line-height:1.6em;
 }
 
@@ -348,24 +383,15 @@ div.avatar-profile .avatar-text{
   font-weight:bold;
 }
 
-div.center-child-div{
-  text-align:center;
-}
-
-div.center-child-div > div{
-  display:inline-block;
-  text-align:left;
-}
-
-.font1x{
+.metro-interactive .font1x{
   font-size:1.2em;
 }
 
-.font2x{
+.metro-interactive .font2x{
   font-size:1.6em;
 }
 
-.font3x{
+.metro-interactive .font3x{
   font-size:2em;
 }
 
@@ -421,6 +447,9 @@ div.subway-tile > div.tile-header > div.dot > p, div.subway-tile-dot > p{
   margin:0em;
   text-align:center;
   color:#ffffff;
+
+  -ms-user-select: none;
+  user-select: none;
 }
 
 
@@ -437,6 +466,14 @@ div.topline-bar-charts, div.puma-map-wrap{
   .metro-interactive .left30{
     float:none;
     width:100%;
+  }
+
+  div.floated-map{
+    float:none;
+    min-width:320px;
+    max-width:auto;
+    width:auto;
+    margin:1em 0em 1em;
   }
 
   div.avatar-profile{
@@ -465,7 +502,15 @@ div.topline-bar-charts, div.puma-map-wrap{
 
   div.topline-bar-charts, div.puma-map-wrap{
     max-width:640px;
-  }   
+  } 
+
+  div.floated-map{
+    float:right;
+    min-width:320px;
+    max-width:600px;
+    width:45%;
+    margin:1em 0em 2em 2em;
+  }    
 }
 
 @media (min-width:950px){
@@ -487,13 +532,13 @@ div.topline-bar-charts, div.puma-map-wrap{
   }
 
   .metro-interactive .left60{
-    width:58%;
+    width:60%;
     margin:0em 1%;   
   }
 
   .metro-interactive .left40{
     width:36%;
-    margin:0em 4% 0em 0%;   
+    margin:0em 2% 0em 0%;   
   }
 
   .metro-interactive .left30{

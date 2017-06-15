@@ -93,7 +93,7 @@ export default function jurisdiction_profiles(container){
 		var bar_chart_wrap = wrap.append("div").style("float","left").classed("left70",true).style("margin-top","2em");
 
 		//map wrapper
-		var map_wrap = outer_wrap.append("div").style("min-height","100px");
+		var map_wrap = outer_wrap.append("div").style("min-height","20px");
 
 	//END DOM STRUCTURE------------
 
@@ -110,8 +110,6 @@ export default function jurisdiction_profiles(container){
 
 		bar_charts(data, bar_chart_wrap, color);
 	}
-
-	//var I = interventions();
 
 	//DRAW THE JUSRISDICTION PROFILE (id is the jurisdiction id)
 	function draw(id){

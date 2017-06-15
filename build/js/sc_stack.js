@@ -1,7 +1,7 @@
 import format from '../../../js-modules/formats.js';
 
 export default function sc_stack(){
-	//color credit: colorbrewer2.org
+
 	var colors = ['#666666','#65a4e5','#a6d854','#0d73d6','#fc8d62','#66c2a5','#e5c494','#ffd92f'];
 
 	var titles = [
@@ -14,6 +14,16 @@ export default function sc_stack(){
 		"Highly educated, high-income older people",
 		"Highly educated and engaged younger people"
 	];
+
+	var descriptions = {
+		"1":"Members of this largest group have at most a high school diploma (or equivalent), and 44 percent did not complete high school. They are nearly all “prime age,” between 25 and 54 years old. The plurality is Latino, and nearly half were born outside the United States—although two-thirds of all members are U.S. citizens. A large percentage are English language-learners and over half speak a language other than English at home. Half are married and a third are supporting a child under 18 in their home. Compared with other groups, this group shows moderate levels of interest in work.",
+		"2":"Members of this group were least likely both to be actively looking for work and to have worked in the previous year. Nearly all are over 55 and may be eyeing retirement, but are not receiving retirement or disability benefits. They are the least likely to be caring for children in their home. All completed at most high school; they are the most likely to report some form of disability; and just 61 percent speak English “very well,” the lowest rate of any group. Nearly half were born outside the United States, although 73 percent of all members are U.S. citizens.",
+		"3":"Nearly all members of this group are under age 35. It is the most racially and ethnically diverse group, and has the highest rate of caring for children in the household—many with children under age 6—and single parents. At the same time, this group has the highest rate of young adults living in their parents’ home. Members have at most a high school diploma (or equivalent), and 41 percent have not completed high school. Median family income is $30,753, the lowest of any group; and 58 percent receive safety net support. More than one-third are actively looking for work.",
+		"4":"All members of this group completed at least some college and at most an occupational certificate or Associate degree. Over half are 55 or older, and three-quarters are over the age of 46. This group is overwhelmingly native-born, white, and English-speaking. Perhaps related to their older-than-average age, an above-average share of this group reports some form of disability. They report moderate family incomes and moderate work engagement relative to the other groups.",
+		"5":"This group has the highest rates of actively looking for work, and of school enrollment. They are in the beginning of their prime working years, at median age 33. Those in school are “nontraditional” students actively looking for work. All members have completed at least some college, and may have an occupational certificate or Associate degree. The majority are native-born and English-speaking. They have the second-highest rate of caring for children under 18, about the same as the less-educated prime-age group.",
+		"6":"This is the wealthiest group, reporting median family income of $83,546. Two-thirds are married, the highest rate of any group, but few are caring for children. It is also the least racially and ethnically diverse group, and just 14 percent speak English less than very well. Twenty-nine percent were born outside the U.S., but like all members of the group, all possess a Bachelor degree or higher; and 88 percent of all members are U.S. citizens. They show moderate interest in work, comparable to that of the largest group of less-educated prime-age workers.",
+		"7":"Among all groups, members of this group were the most likely to have worked in the previous year, and they have the second-highest rate of actively looking for work. They are the least likely of any group to report some form of disability. All members have at least a Bachelor degree and relatively high median family income. This group is predominantly white and Asian; 39 percent were born outside the United States. Over half are married, and a quarter are married with children—the highest rate of any group."
+	}	
 
 	var sc = {};
 
@@ -32,6 +42,15 @@ export default function sc_stack(){
 		}
 		else{
 			return titles[+superclus];
+		}
+	}
+
+	sc.overview = sc.description = function(superclus){
+		if(superclus == "ALL" || superclus == null){
+			return "";
+		}
+		else{
+			return descriptions[superclus+""];
 		}
 	}
 
@@ -161,13 +180,7 @@ export default function sc_stack(){
 				text_nums.style("visibility", function(d,j){
 					return j==i ? "visible" : "hidden";
 				})
-				//rects.style("stroke",function(d,i){return sc.color(d.id)});
-				//if(selected_superclus!="ALL"){
-				//	d3.select(this)
-				//	  .style("stroke",function(d,i){
-				//		return d3.color(sc.color(d.id)).darker();
-				//	}).raise();
-				//}
+
 				rect_callback(selected_group, selected_superclus, d);
 			}).style("cursor","pointer");
 		}

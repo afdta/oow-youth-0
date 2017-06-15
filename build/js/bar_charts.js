@@ -1,4 +1,3 @@
-import dimensions from '../../../js-modules/dimensions.js';
 import format from '../../../js-modules/formats.js';
 
 export default function bar_charts(input_datarray, outer_wrap, col){
@@ -8,15 +7,12 @@ export default function bar_charts(input_datarray, outer_wrap, col){
 
 	var wrap = outer_wrap.append("div").classed("c-fix",true).style("margin","0em 0em");
 
-	//var chart_width = dimensions().width < 1024 ? 280 : 340;
-
 	var chartWrap1 = wrap.append("div").style("float", "left").style("width","48%").style("min-width","250px").style("margin-right","4%");
 	var chartWrap2 = wrap.append("div").style("float", "left").style("width","48%").style("min-width","250px");
 
 	//datarray will always be an array of length 1
 	var datarray_ = [].concat(input_datarray);
 	//datarray: an array of data objects
-	//console.log(datarray_);
 
 	var data_stacker = function(keys, labels){
 		var datarray = datarray_.slice(0);
@@ -34,13 +30,9 @@ export default function bar_charts(input_datarray, outer_wrap, col){
 			return obs;
 		});
 
-		//console.log(wrought);
-
 		var countKeys = d3.range(0, datarray.length).map(function(d){return "count"+d});
 
 		var stacked = d3.stack().keys(countKeys)(wrought);
-
-		//console.log(stacked);
 
 		var scale = d3.scaleLinear().domain([0,tot]).range([0,0.8]);
 
@@ -81,23 +73,19 @@ export default function bar_charts(input_datarray, outer_wrap, col){
 			return group;
 		});
 
-		//console.log(map2);
-
 		var scale = d3.scaleLinear().domain([0,tot]).range([0,0.8]);
 
 		return {raw:map1, stacked:map2, total:tot, scale:scale, nbars:1, binary:true, labels:null};
 	}
 
 	var chartWidget = function(title, data, wrapper){
-		//var bars = data.filter(function(d){return d.value >= 0.0045});
-		//var colScale = d3.interpolateLab("#eeeeee", COLOR);
 		var bars = data.stack;
 		var wrap = wrapper.append("div").classed("chart-widget", true);
 		wrap.append("p").html(title)
 						.style("margin","0em 0em 0.5em 0em")
 						.style("padding","0px 10px 0.25em 10px")
 						.style("border-bottom","1px dotted " + color)
-						//.style("font-weight","bold");
+						;
 		
 		var outer_svg = wrap.append("div").style("margin-left",data.labels==null ? "10px" : "0px").append("svg").style("overflow","visible");
 		var svg = outer_svg.append("svg").style("overflow","visible");
@@ -140,16 +128,14 @@ export default function bar_charts(input_datarray, outer_wrap, col){
 				.style("fill","#555555")
 				.style("font-size","15px")
 				;
-			//labels.attr("transform","translate("+label_width+",0)");
+
 			yaxis.style("visibility","visible");
 		}		
 
-		//outer_svg.attr("width",chart_width+"px").attr("height",h+"px")
+
 		outer_svg.attr("width","100%").attr("height",h+"px");
 
 		svg.attr("height","100%")
-		   //.attr("width", data.labels !== null ? (w-label_width)+"px" : w+"px")
-		   //.attr("x", data.labels !== null ? label_width+"px" : "10px")
 		   .attr("width", data.labels !== null ? (100-label_pos)+"%" : "100%")
 		   .attr("x", data.labels !== null ? label_pos+"%" : "0%")
 		   ;
@@ -216,7 +202,7 @@ export default function bar_charts(input_datarray, outer_wrap, col){
 
 	}
 
-	var age_data = data_stacker(["a2534","a3544","a4554","a5564"], ["25–34","35–44","45–44","55–64"]);
+	var age_data = data_stacker(["a2534","a3544","a4554","a5564"], ["25–34","35–44","45–54","55–64"]);
 	var edu_data = data_stacker(["lths","hs","sc","aa","baplus"],["<HS","HS","Some college","Associate's","BA+"]);
 	var race_data = data_stacker(["whiteNH","blackNH","latino","asianNH","otherNH"],
 								 ["White",  "Black",  "Latino","Asian",  "Other"]);
@@ -236,140 +222,5 @@ export default function bar_charts(input_datarray, outer_wrap, col){
 	chartWidget("Limited English proficiency (LEP)", lep_data, chartWrap2);
 	chartWidget("Caring for children", children_data, chartWrap2);
 	chartWidget("Looking for work", looking_data, chartWrap2);
-
-
-	return null;
-
-
-	//deprecated...
-	var age_data = function(){
-
-
-						return [{label:"25–34", value:d.a2534}, 
-								{label:"35–44", value:d.a3544}, 
-								{label:"45–44", value:d.a4554}, 
-								{label:"55–64", value:d.a5564}];
-					};
-
-	var edu_data = function(){
-			var D = [//{label:"In school", value:d.insch}, 
-					{label:"<HS", value:d.lths}, 
-					{label:"HS", value:d.hs}, 
-					{label:"Some college", value:d.sc}, 
-					{label:"Associate's", value:d.aa},
-					{label:"BA+", value:d.baplus}];
-					//console.log(d3.sum(D, function(d){return d.value}));
-			return D;
-		}
-
-	var race_data = function(){
-			var D = [{label:"White", value:d.whiteNH}, 
-					{label:"Black", value:d.blackNH}, 
-					{label:"Hispanic", value:d.latino}, 
-					{label:"Asian", value:d.asianNH},
-					{label:"Other", value:d.otherNH}];
-					//console.log(d3.sum(D, function(d){return d.value}));	
-			return D;			
-		};
-
-	var sex_data = function(){
-			var D = [{label:"Male", value:d.male}, 
-					{label:"Female", value:1-d.male}];
-			//console.log(d3.sum(D, function(d){return d.value}));
-			return D		
-		};
-
-	var disability_data = function(){
-			return [{label:"Disability", value:d.dis}, 
-					{label:"No disability", value:1-d.dis}];
-			
-		};
-
-	var lep_data = function(){
-			return [{label:"LEP", value:d.lep}, 
-					{label:"Non-Lep", value:1-d.lep}];
-		};
-
-	var children_data = function(){
-			return [{label:"One or more", value:d.children}, 
-					{label:"None", value:1-d.children}]
-					;
-		};
-
-	var looking_data = function(){
-			return [{label:"Looking", value:d.unemployed},
-					{label:"Not looking", value:1-d.unemployed}
-					];
-		};
-
-		//Worked in last year
-		//(function(){
-		//	var vals = [{label:"Yes", value:d.lastworked_pastyr}, 
-		//				{label:"No", value:1-d.lastworked_pastyr}
-		//				]
-		//				;
-		//	chartWidget("Worked in the last year", vals, true);
-		//})();
-
-	var chartWidgetDeprecated = function(title, data, stacked, wrapper){
-			var stack = arguments.length > 2 ? !!stacked : false;
-			var bars = data.filter(function(d){return d.value >= 0.0045});
-			var colScale = d3.interpolateLab("#eeeeee", COLOR);
-
-			var wrap = wrapper.append("div").classed("chart-widget", true);
-			wrap.append("p").html(title).style("margin","0em 0em 0em 0em");
-			var svg = wrap.append("svg");
-			var bar_height = 15;
-			var pad = 5;
-			var w = 320;
-			var h = !!stack ? bar_height + pad*2 : ((bars.length*bar_height) + (bars.length*1) + (2*pad));
-			svg.style("height",h+"px").style("width",w+"px");
-
-			var cumulative = 0;
-
-			var mapped = bars.map(function(d,i){
-				var obs = {};
-				obs.label = d.label;
-				obs.value = d.value;
-				obs.width = (obs.value*100)+"%";
-				if(!!stack){
-					obs.x = (cumulative*100)+"%";
-					obs.y = pad;
-					cumulative = cumulative + d.value;
-				}
-				else{
-					obs.y = pad + (i*(bar_height+1));
-					obs.x = "0%"
-				}
-				return obs;
-			});
-
-			svg.selectAll("rect").data(mapped).enter().append("rect")
-					.attr("x", function(d){return d.x})
-					.attr("y", function(d){return d.y})
-					.attr("width", function(d){return d.width})
-					.attr("height", function(d){return bar_height})
-					.attr("stroke", "#ffffff")
-					.attr("stroke-width",0)
-					.attr("fill", function(d,i){
-						return COLOR;
-						//return !!stack && i==1 ? "#dddddd" : COLOR
-					})
-					.attr("fill-opacity", function(d,i){
-						return !!stack && i==1 ? 0.35 : 1;
-					})
-					.style("shape-rendering","crispEdges")
-					;
-
-		};
-		
-		chartWidget("Age", age_data(), false, chartWrap1);
-		chartWidget("Educational attainment", edu_data(), false, chartWrap1);
-		chartWidget("Race", race_data(), false, chartWrap1);	
-		chartWidget("Male share", sex_data(), true, chartWrap2);
-		chartWidget("Disability status", disability_data(), true, chartWrap2);
-		chartWidget("Limited English proficiency (LEP)", lep_data(), true, chartWrap2);
-		chartWidget("Is caring for children", children_data(), true, chartWrap2);
-		chartWidget("Looking for work", looking_data(), true, chartWrap2);
 
 }

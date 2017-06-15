@@ -1,15 +1,6 @@
 
 import unlist from '../../../js-modules/unlist.js';
 
-//likely big speedups to be made:
-//when registering new groups, run the calcs to produce the transition functions
-//then create a transition function that takes startpos, finishpos. if there's a difference of one,
-//then run the appropriate transition from either t=1 to t=0 or from t=0 to t=1. otherwise no transition,
-//if say, you go from t=2 to t=0. also set transition duration based on speed of scroll. if above a certain
-//speed, maybe have transition time of 0. 
-
-//dot matrix module for out of work - v2
-
 export default function dot_matrix(container, dot_radius){
 
 	//private members

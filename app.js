@@ -208,7 +208,7 @@ onScroll.prototype.tick = function(duration){
 	return this;
 };
 
-function waypoint$1(element){
+function waypoint(element){
 	var os = new onScroll(element);
 	return os;
 }
@@ -335,18 +335,12 @@ function funnel(container){
 							var share =  100*(d[0][1] - d[0][0])/tot;
 							return share+"%";
 						});
-						/*.attr("y", function(d, i){
-							return !!keys2[i].bump ? "0px" : "10px"
-						})*/
 
 					//if not bumped, transition color now
 					t1.filter(function(d,i){return !keys2[i].bump})
 						.attr("fill", function(d,i){
 							return colors2[i]}
 						);
-						/*.attr("stroke", function(d,i){
-							return colors2[i]}
-						)*/
 
 				var t2 = t1.transition()
 						.duration(2000)
@@ -371,7 +365,7 @@ function funnel(container){
 				marker.classed("active",true);
 				slide.transition().duration(500).style("opacity",1);	
 			}
-			waypoint$1(slide.node()).buffer(-1, 0.8).activate(activate);		
+			waypoint(slide.node()).buffer(-1, 0.8).activate(activate);		
 		}
 		else{
 			text_wrap.transition().duration(500).style("opacity",1);
@@ -417,181 +411,6 @@ function funnel(container){
 	  [{key:"unemp_oow", col:3}, {key:"nilf_oow", col:3}, 
 	   {key:"unemp_other", col:2}, {key:"emp", col:2}, {key:"nilf_other", col:2}]
 	 );
-}
-
-function scroll_show(container_node){
-	var O = {};
-
-	//track the position of fixed element: 0-default, 1-fixed
-	var position = 0;
-	var pos_change_callback = null;
-
-	var height = 91;
-	
-	var wrap_outer = d3.select(container_node).style("width","100%");
-	var wrap = wrap_outer.append("div").style("width","100%").style("position","relative");
-
-	var fixedPanel = null;
-
-	O.panel = function(){
-		var wp = null;
-		var panel_outer = wrap.append("div")
-							 .classed("c-fix",true)
-							 .style("height","100%")
-							 .style("max-height","100vh")
-							 .style("min-height","90vh")
-							 .style("width","100%")
-							 .style("position",null)
-							 .style("z-index","1");
-
-		var panel = panel_outer.append("div").style("width","100%").style("height","auto");
-
-		if(fixedPanel===null){
-			//first panel is the fixed one
-			fixedPanel = panel;
-			afix(panel_outer, panel);
-		}
-
-		var wp = waypoint$1(panel_outer.node()).buffer(0.5);
-		var p = {};
-
-		p.init = function(fn){
-			fn.call(panel);
-			return p;
-		};
-
-		p.activate = function(fn, reactivate_when_in_view){
-			reactivate_when_in_view = true;
-			wp.activate(function(box, window_height){
-				fn.call(panel, box, window_height);
-			}, reactivate_when_in_view);
-			return p;
-		};
-
-		p.scroll = function(fn){
-			wp.scroll(function(box, window_height){
-				fn.call(panel, box, window_height);
-			});
-			return p;
-		};
-
-		p.wrap = panel_outer;
-		p.panel = panel;
-		p.node = panel.node();
-
-		return p;
-	};
-
-	//scroll event handler
-	function afix(outer_panel, inner_panel, top_pad){
-
-		var parent = wrap.node(); //parent is the div that holds the panels
-		var container = outer_panel.node(); //container never gets fixed
-		var inner = inner_panel; //inner panel gets fixed
-		var inner_node = inner.node();
-
-		outer_panel.style("z-index","2");
-		wrap.classed("panel-wrap",true);
-
-		var top_pad = arguments.length > 2 ? top_pad : 50;
-
-		function pos(){
-			var window_height = Math.max(document.documentElement.clientHeight, (window.innerHeight || 0));
-
-			try{
-				var rect = container.getBoundingClientRect();
-				var height_fixed = rect.bottom - rect.top;
-				
-				var inner_rect = inner_node.getBoundingClientRect();
-				var inner_height = inner_rect.bottom - inner_rect.top;
-
-				//var past_bottom = (parent.getBoundingClientRect().bottom < window_height-height_fixed-top_pad) ? true : false;
-				var past_bottom = (parent.getBoundingClientRect().bottom < inner_height+top_pad+150) ? true : false;
-				
-				if(rect.top < top_pad && !past_bottom){
-					//console.log("fixed");
-					if(position !== 1){
-						inner.interrupt()
-							 .style("position","fixed")
-							 .style("opacity",1)
-							 //.style("bottom", (-height_fixed+"px"))
-							 //.style("height", height_fixed+"px")
-							 //.style("background-color",null)
-							 .style("top",(top_pad-0)+"px")
-							 .style("left","0px")
-							 //.style("width","100%")
-							 .transition()
-							 .duration(400)
-							 .style("top",top_pad+"px")
-							 //.style("bottom","-1px")
-							 //.on("end", function(d,i){
-							 	//force repaint. sometime transition results in a 1px gap
-							 //	inner.style("bottom","-1px").style("display","block");
-							 //})
-							 ;
-						position = 1;
-						if(!!pos_change_callback){
-							pos_change_callback(1);
-						}
-					}
-				}
-				/*else if(rect.top < 0 && past_bottom){
-					if(position !== 2){
-						inner.interrupt()
-							 .transition()
-							 .duration(0)
-							 .style("position","absolute")
-							 //.style("bottom","auto")
-							 //.style("height",height+"px")
-							 //.style("background-color",background_color)
-							 .style("top","calc(100% + 2em)")
-							 .style("left","0px")
-							 //.style("width","100%")
-							 ;
-						position = 2;
-						if(!!pos_change_callback){
-							pos_change_callback(2);
-						}
-					}
-				}*/
-				else if(position > 0 && past_bottom){
-					//slide up
-					position = -1;
-					inner.interrupt().transition().style("top",(0-inner_height)+"px").on("end",function(){
-						inner.style("position","relative")
-							 .style("top",null);
-							 
-						if(!!pos_change_callback){
-							pos_change_callback(0);
-						}
-
-						position = 0;
-					});
-				}
-				else if(position > -1){
-					position = 0;
-					inner.interrupt().transition().duration(0).style("top","auto").style("position","relative");
-				}
-			}
-			catch(e){
-				console.log(e);
-				if(!!inner){
-					inner.style("position","relative");//.style("width","auto");
-				}
-			}
-		}
-
-		window.addEventListener("scroll", pos);
-		window.addEventListener("resize", pos);
-
-		//set up in next tick
-		setTimeout(function(){pos();}, 0);
-
-		//insurance
-		setTimeout(function(){pos();}, 3000);
-	}
-
-	return O;
 }
 
 var cluster_data = 
@@ -683,7 +502,7 @@ format.fn0 = function(fmt){
 };
 
 function sc_stack(){
-	//color credit: colorbrewer2.org
+
 	var colors = ['#666666','#65a4e5','#a6d854','#0d73d6','#fc8d62','#66c2a5','#e5c494','#ffd92f'];
 
 	var titles = [
@@ -696,6 +515,16 @@ function sc_stack(){
 		"Highly educated, high-income older people",
 		"Highly educated and engaged younger people"
 	];
+
+	var descriptions = {
+		"1":"Members of this largest group have at most a high school diploma (or equivalent), and 44 percent did not complete high school. They are nearly all “prime age,” between 25 and 54 years old. The plurality is Latino, and nearly half were born outside the United States—although two-thirds of all members are U.S. citizens. A large percentage are English language-learners and over half speak a language other than English at home. Half are married and a third are supporting a child under 18 in their home. Compared with other groups, this group shows moderate levels of interest in work.",
+		"2":"Members of this group were least likely both to be actively looking for work and to have worked in the previous year. Nearly all are over 55 and may be eyeing retirement, but are not receiving retirement or disability benefits. They are the least likely to be caring for children in their home. All completed at most high school; they are the most likely to report some form of disability; and just 61 percent speak English “very well,” the lowest rate of any group. Nearly half were born outside the United States, although 73 percent of all members are U.S. citizens.",
+		"3":"Nearly all members of this group are under age 35. It is the most racially and ethnically diverse group, and has the highest rate of caring for children in the household—many with children under age 6—and single parents. At the same time, this group has the highest rate of young adults living in their parents’ home. Members have at most a high school diploma (or equivalent), and 41 percent have not completed high school. Median family income is $30,753, the lowest of any group; and 58 percent receive safety net support. More than one-third are actively looking for work.",
+		"4":"All members of this group completed at least some college and at most an occupational certificate or Associate degree. Over half are 55 or older, and three-quarters are over the age of 46. This group is overwhelmingly native-born, white, and English-speaking. Perhaps related to their older-than-average age, an above-average share of this group reports some form of disability. They report moderate family incomes and moderate work engagement relative to the other groups.",
+		"5":"This group has the highest rates of actively looking for work, and of school enrollment. They are in the beginning of their prime working years, at median age 33. Those in school are “nontraditional” students actively looking for work. All members have completed at least some college, and may have an occupational certificate or Associate degree. The majority are native-born and English-speaking. They have the second-highest rate of caring for children under 18, about the same as the less-educated prime-age group.",
+		"6":"This is the wealthiest group, reporting median family income of $83,546. Two-thirds are married, the highest rate of any group, but few are caring for children. It is also the least racially and ethnically diverse group, and just 14 percent speak English less than very well. Twenty-nine percent were born outside the U.S., but like all members of the group, all possess a Bachelor degree or higher; and 88 percent of all members are U.S. citizens. They show moderate interest in work, comparable to that of the largest group of less-educated prime-age workers.",
+		"7":"Among all groups, members of this group were the most likely to have worked in the previous year, and they have the second-highest rate of actively looking for work. They are the least likely of any group to report some form of disability. All members have at least a Bachelor degree and relatively high median family income. This group is predominantly white and Asian; 39 percent were born outside the United States. Over half are married, and a quarter are married with children—the highest rate of any group."
+	};	
 
 	var sc = {};
 
@@ -714,6 +543,15 @@ function sc_stack(){
 		}
 		else{
 			return titles[+superclus];
+		}
+	};
+
+	sc.overview = sc.description = function(superclus){
+		if(superclus == "ALL" || superclus == null){
+			return "";
+		}
+		else{
+			return descriptions[superclus+""];
 		}
 	};
 
@@ -841,13 +679,7 @@ function sc_stack(){
 				text_nums.style("visibility", function(d,j){
 					return j==i ? "visible" : "hidden";
 				});
-				//rects.style("stroke",function(d,i){return sc.color(d.id)});
-				//if(selected_superclus!="ALL"){
-				//	d3.select(this)
-				//	  .style("stroke",function(d,i){
-				//		return d3.color(sc.color(d.id)).darker();
-				//	}).raise();
-				//}
+
 				rect_callback(selected_group, selected_superclus, d);
 			}).style("cursor","pointer");
 		}
@@ -891,10 +723,6 @@ function sc_stack(){
 	return sc;
 }
 
-//v1.0 developed for congressional district poverty
-
-//viewport dimensions
-
 function bar_charts(input_datarray, outer_wrap, col){
 	var color = arguments.length > 2 ? col : "#444444";
 
@@ -902,15 +730,12 @@ function bar_charts(input_datarray, outer_wrap, col){
 
 	var wrap = outer_wrap.append("div").classed("c-fix",true).style("margin","0em 0em");
 
-	//var chart_width = dimensions().width < 1024 ? 280 : 340;
-
 	var chartWrap1 = wrap.append("div").style("float", "left").style("width","48%").style("min-width","250px").style("margin-right","4%");
 	var chartWrap2 = wrap.append("div").style("float", "left").style("width","48%").style("min-width","250px");
 
 	//datarray will always be an array of length 1
 	var datarray_ = [].concat(input_datarray);
 	//datarray: an array of data objects
-	//console.log(datarray_);
 
 	var data_stacker = function(keys, labels){
 		var datarray = datarray_.slice(0);
@@ -928,13 +753,9 @@ function bar_charts(input_datarray, outer_wrap, col){
 			return obs;
 		});
 
-		//console.log(wrought);
-
 		var countKeys = d3.range(0, datarray.length).map(function(d){return "count"+d});
 
 		var stacked = d3.stack().keys(countKeys)(wrought);
-
-		//console.log(stacked);
 
 		var scale = d3.scaleLinear().domain([0,tot]).range([0,0.8]);
 
@@ -975,23 +796,19 @@ function bar_charts(input_datarray, outer_wrap, col){
 			return group;
 		});
 
-		//console.log(map2);
-
 		var scale = d3.scaleLinear().domain([0,tot]).range([0,0.8]);
 
 		return {raw:map1, stacked:map2, total:tot, scale:scale, nbars:1, binary:true, labels:null};
 	};
 
 	var chartWidget = function(title, data, wrapper){
-		//var bars = data.filter(function(d){return d.value >= 0.0045});
-		//var colScale = d3.interpolateLab("#eeeeee", COLOR);
 		var bars = data.stack;
 		var wrap = wrapper.append("div").classed("chart-widget", true);
 		wrap.append("p").html(title)
 						.style("margin","0em 0em 0.5em 0em")
 						.style("padding","0px 10px 0.25em 10px")
-						.style("border-bottom","1px dotted " + color);
-						//.style("font-weight","bold");
+						.style("border-bottom","1px dotted " + color)
+						;
 		
 		var outer_svg = wrap.append("div").style("margin-left",data.labels==null ? "10px" : "0px").append("svg").style("overflow","visible");
 		var svg = outer_svg.append("svg").style("overflow","visible");
@@ -1034,16 +851,14 @@ function bar_charts(input_datarray, outer_wrap, col){
 				.style("fill","#555555")
 				.style("font-size","15px")
 				;
-			//labels.attr("transform","translate("+label_width+",0)");
+
 			yaxis.style("visibility","visible");
 		}		
 
-		//outer_svg.attr("width",chart_width+"px").attr("height",h+"px")
+
 		outer_svg.attr("width","100%").attr("height",h+"px");
 
 		svg.attr("height","100%")
-		   //.attr("width", data.labels !== null ? (w-label_width)+"px" : w+"px")
-		   //.attr("x", data.labels !== null ? label_width+"px" : "10px")
 		   .attr("width", data.labels !== null ? (100-label_pos)+"%" : "100%")
 		   .attr("x", data.labels !== null ? label_pos+"%" : "0%")
 		   ;
@@ -1106,7 +921,7 @@ function bar_charts(input_datarray, outer_wrap, col){
 
 	};
 
-	var age_data = data_stacker(["a2534","a3544","a4554","a5564"], ["25–34","35–44","45–44","55–64"]);
+	var age_data = data_stacker(["a2534","a3544","a4554","a5564"], ["25–34","35–44","45–54","55–64"]);
 	var edu_data = data_stacker(["lths","hs","sc","aa","baplus"],["<HS","HS","Some college","Associate's","BA+"]);
 	var race_data = data_stacker(["whiteNH","blackNH","latino","asianNH","otherNH"],
 								 ["White",  "Black",  "Latino","Asian",  "Other"]);
@@ -1127,147 +942,327 @@ function bar_charts(input_datarray, outer_wrap, col){
 	chartWidget("Caring for children", children_data, chartWrap2);
 	chartWidget("Looking for work", looking_data, chartWrap2);
 
+}
 
-	return null;
+// Order and final names of major groups:
+	// 1.“Young, less-educated, and diverse” (supercluster 3)
+	// 2.“Less-educated prime-age people” (supercluster 1)
+	// 3.“Diverse, less-educated, and eyeing retirement” (supercluster 2)
+	// 4.“Motivated and moderately educated younger people” (supercluster 5)
+	// 5.“Moderately educated older people” (supercluster 4)
+	// 6.“Highly educated and engaged younger people” (supercluster 7)
+	// 7.“Highly educated, high-income older people” (supercluster 6)
+
+function avatars(container, supercluster){
+	
+	var data = {
+		"1":[
+				{name:"Joseph", about:["Joseph is a 51-year-old white man with a high school diploma. He last worked two years ago doing construction, and gave up looking for work about six months ago; construction has slowed down in his economically depressed area. He is single and lives with his brother and his family."]},
+				{name:"Carmen", about:["Carmen is a 40-year-old married mother of teenage children. A green card holder, she immigrated to U.S. when she was very young, and never completed high school; she prefers to speak Spanish at home. She has been thinking about looking for work to help support the family, whose income is just above the poverty line."]}
+			],
+		"2":[
+				{name:"Lola", about:["Lola is a 61-year-old Filipina immigrant; she is not a citizen but is in the United States legally. She never completed secondary school and does not speak much English. She used to work as a hotel housekeeper, but stopped nearly 10 years ago as her vision deteriorated."]},
+				{name:"Valentina", about:[" Valentina is a 58-year-old married former home care aide. She is a U.S.-born Latina with a high school diploma. She stopped working five years ago to help care for her grandchildren, who do not live with her."]}
+		],
+		"3":[
+				{name:"Patricia", about:["Patricia is a 25-year-old single mother who did not finish high school. She has never worked, instead caring for her young children and several nieces and nephews. Now that her children are school-age, she is looking for work outside the home. She is not a citizen and speaks Spanish at home."]},
+				{name:"Will", about:["Will is a 30-year-old black man with a high school diploma who lost his warehouse packaging job nearly a year ago; he stopped looking for work several months ago. He is unmarried and recently moved back in with his mother."]}
+		],
+		"4":[
+				{name:"Jacqueline", about:["Jacqueline is a 57-year-old white woman who left college to get married and start a family. Five years ago she left her job as a teacher's aide to care for her parents, who have since passed away. She is divorced, and has grown children; she lives alone."]},
+				{name:"Bernadette", about:["Bernadette is a 52-year-old black woman with an Associate degree. She left her job as an office manager two years ago to recover from a serious car accident; she still has difficulty walking. She is now looking for similar work to help contribute to her and her husband's retirement."]}
+		],
+		"5":[
+				{name:"Carlos", about:["Carlos is a 42-year-old second-generation American. He is single. He dropped out of college after his first year, and since then has mostly worked in retail and as a product promoter. He has not worked in the past 18 months while trying to get his business off the ground."]},
+				{name:"Anna", about:["Anna is a 31-year-old single mother of a young daughter. She recently quit her home health aide job to find work with hours that will allow her to study to become a licensed practical nurse. Food stamps and public assistance are meager, but keep her afloat during this transition period."]}
+		],
+		"6":[
+				{name:"Leonard", about:["Leonard is a 54-year-old white man who last worked three years ago as an accountant. He is not looking for work, as his wife's job can support them both, particularly given that they do not have children. He would like to work if the right opportunity came along."]},
+				{name:"Moira", about:["Moira is a 57-year-old white woman with a Bachelor degree in speech pathology. She is married and has not worked in five years, unable to find a job where they moved for her husband's work. They do not have children."]}
+		],
+		"7":[
+				{name:"Anika", about:["Anika is a 32-year-old who moved to the United States from India six years ago to pursue a Ph.D. She did not work while she was in school, but is now looking for a job doing pharmacology research. She met her husband in graduate school and was recently naturalized."]},
+				{name:"Doug", about:["Doug is a 43-year-old information technology systems manager who was laid off in the past year. He will look for work soon, but is not in a hurry; his wife works, and he would like to as well."]}
+		]
+	};
+
+	var meet = d3.select(container);
+	var dat = data[supercluster+""];
+
+		meet.append("p").text("Meet " + dat[0].name + " and " + dat[1].name)
+					.style("padding","1em 0em 0em 0em")
+					.style("margin","0em 0em 0.6em 10px")
+					.style("font-weight","bold")
+					.classed("font1x",true);
+
+	var profiles = meet.selectAll("div").data(dat).enter().append("div").classed("avatar-profile c-fix",true)
+						.style("margin-right",function(d,i){return i==0 ? "10%" : "0%"});
+
+	var avatars = profiles.append("div").classed("avatar",true).append("img")
+							.attr("src", function(d){return dir.url("avatars", d.name.toLowerCase() + ".png")} ) 
+							.attr("alt", function(d){return d.name + " portrait"});
+
+		profiles.selectAll("p").data(function(d){return d.about}).enter().append("p").classed("avatar-text",true)
+							  .text(function(d){return d});
 
 
-	//deprecated...
-	var age_data = function(){
+}
+
+function interventions(){
+	var I = {};
+
+	var cols = sc_stack().color;
+	// Order and final names of major groups:
+	// 1.“Young, less-educated, and diverse” (supercluster 3)
+	// 2.“Less-educated prime-age people” (supercluster 1)
+	// 3.“Diverse, less-educated, and eyeing retirement” (supercluster 2)
+	// 4.“Motivated and moderately educated younger people” (supercluster 5)
+	// 5.“Moderately educated older people” (supercluster 4)
+	// 6.“Highly educated and engaged younger people” (supercluster 7)
+	// 7.“Highly educated, high-income older people” (supercluster 6)
+
+	var descriptions = {};
+
+	descriptions.initials = ["BP","TJ","SE","JS","SI","2G","AP","AS"];
+
+	descriptions.titles = {
+		BP:"Bridge programs",
+		TJ:"Transitional jobs",
+		SE:"Social enterprises",
+		JS:"Job search assistance and counseling",
+		SI:"Sector initiatives",
+		"2G":"Two-generation programs",
+		AP:"Apprenticeships",
+		AS:"ASAP (Accelerated Study in Associate Programs)"
+	};
+
+	descriptions.links = {
+		"ALL":{"JS":1},
+		"1":{"JS":1, "BP":1, "TJ":1, "SE":1, "SI":1, "2G":1, "AP":1},
+		"2":{"JS":1},
+		"3":{"JS":1, "BP":1, "TJ":1, "SE":1, "SI":1, "2G":1, "AP":1},
+		"4":{"JS":1},
+		"5":{"JS":1, "BP":1, "SI":1, "2G":1, "AP":1, "AS":1},
+		"6":{"JS":1},
+		"7":{"JS":1}
+	};
+
+	descriptions.short = {
+		BP:["<b>Bridge programs</b> prepare people with low academic skills for further education and training, sometimes in combination with occupational skills training"],
+		TJ:["<b>Transitional job programs</b> provide short-term subsidized employment and supportive services to people with limited work experience and barriers to employment, and help participants find unsubsidized jobs"],
+		SE:["<b>Social enterprises</b> are mission-driven business enterprises that hire people with limited work experience and barriers to employment to carry out the work of the business. The enterprise also provides supportive services to workers and helps them find other employment opportunities."],
+		JS:["<b>Job search assistance and counseling</b> is a central feature of the public workforce system’s American Job Centers and other employment programs. It consists of in-person and individualized assistance, including skill and interest assessments, career and training planning, case management and referrals, and help with resume preparation and interviewing skills."],
+		SI:["<b>Sector initiatives</b> identify employers’ skill and workforce needs in a given industry and region and develop recruiting, assessment, and training strategies to help employers find workers with right skills."],
+		"2G":["<b>Two-generation programs</b> link education, job training and career-building for low-income parents with early childhood education for their children, thus building human capital across generations."],
+		AP:["<b>Apprenticeships</b> combine paid employment with on-the-job training and related classroom instruction."],
+		AS:["<b>ASAP</b> (Accelerated Study in Associate Programs) was designed by the City University of New York to increase the graduation rate of low-income community college students seeking an associate’s degree. The program requires students to attend full-time and provides a range of academic, financial, and person supports."]
+	};
+
+	descriptions.long = {
+		BP:['<b>Bridge programs</b>&nbsp;are for people who need additional academic preparation before enrolling in post-secondary education or job training.&nbsp;<a href="https://www2.ed.gov/about/offices/list/ovae/pi/cclo/brief-1-bridge-programs.pdf">Low literacy and math levels</a>&nbsp;prevent many adults from succeeding in job training or earning educational credentials, and bridge programs are&nbsp;<a href="http://www.air.org/sites/default/files/downloads/report/AIR_Changing_the_Odds_0.pdf">one response</a>&nbsp;to increase the completion rates of those in need of academic remediation.&nbsp;Some bridge programs focus on preparing for the GED and thus are designed expressly for people without high school diplomas, but others are open to high school graduates as well, depending on their skill levels. Bridge programs typically use a contextualized learning approach, in which students develop their academic skills in the context of occupational training or real-world scenarios such as career exploration.', '<a href="https://www.sbctc.edu/colleges-staff/programs-services/i-best/">I-BEST</a>&nbsp;and&nbsp;<a href="http://www.laguardia.edu/ACE/Programs/CCPI/BridgeProgram/">Bridge to College and Careers</a>&nbsp;are examples of bridge programs that have been evaluated, but there are many more, including those developed as part of multi-state initiatives such as&nbsp;<a href="http://www.jff.org/sites/default/files/publications/materials/BT_toolkit_June7.pdf">Breaking Through</a>,&nbsp;<a href="http://www.joycefdn.org/assets/images/joyceFnd_ShiftingGears3.0_update.pdf">Shifting Gears</a>, and&nbsp;<a href="http://www.jff.org/initiatives/accelerating-opportunity">Accelerating Opportunity</a>.'],
+		TJ:['<b>Transitional jobs programs&nbsp;</b>are for people with limited work experience who would otherwise struggle to find employment.&nbsp;<a href="https://www.mdrc.org/sites/default/files/LookingForwardMemo_SubsidizedEmployment.pdf">These programs</a>&nbsp;provide short-term subsidized employment<b>&nbsp;</b>and supportive services<b>&nbsp;</b>based on the theory that the best way to learn to work is by working. A number of programs are&nbsp;<a href="https://www.mdrc.org/publication/implementation-and-early-impacts-next-generation-subsidized-employment-programs">currently being evaluated</a>, building on the lessons of previous evaluations, which have been mixed. The&nbsp;<a href="https://ceoworks.org/">Center for Employment Opportunities</a>, which serves previously incarcerated people, was found to significantly&nbsp;<a href="http://www.mdrc.org/sites/default/files/full_451.pdf">reduce recidivism</a>, but it did not increase subsequent unsubsidized employment,&nbsp;<a href="https://www.mdrc.org/publication/should-government-subsidize-jobs-unemployed">nor did other recently evaluated programs.</a>&nbsp;Some researchers have suggested that in addition to testing new strategies to improve employment outcomes of transitional jobs participants,&nbsp;<a href="http://www.mdrc.org/publication/transitional-jobs">it may also be important</a>&nbsp;to consider other benefits related to community-building and civic engagement. Individuals could build on their&nbsp;<a href="http://www.buildingbetterprograms.org/wp-content/uploads/2016/04/persistent-nonworkers.pdf">roles as community members and parents</a>&nbsp;by engaging in constructive, stipend-paying activities such as participating in an afterschool safety patrol or maintaining a community garden.', 'More information on transitional jobs is available via the&nbsp;<a href="https://www.heartlandalliance.org/nationalinitiatives/our-initiatives/national-transitional-jobs/">National Transitional Jobs Network</a>&nbsp;anda&nbsp;<a href="https://www.law.georgetown.edu/academics/centers-institutes/poverty-inequality/current-projects/upload/GCPI-Subsidized-Employment-Paper-20160413.pdf">report reviewing their history and effectiveness</a>.'],
+		SE:['<b>Social enterprises&nbsp;</b>hire people with limited work experience who would otherwise struggle to find employment.&nbsp;<a href="https://socialenterprise.us/about/social-enterprise/">Social enterprises</a>combine the social mission of a nonprofit with the market-driven approach of a business, and while they can focus on any of a number of social issues, the programs featured here focus specifically on employment. They run businesses in fields such as food service, groundskeeping, and maintenance, and directly hire the people they are serving. In conjunction with employment, the organizations&nbsp;provide supportive services and help employees find other job opportunities when they are ready.&nbsp;The organizations develop a mutually reinforcing relationship between the business and social missions—the social mission of serving the unemployed would not be financially viable without the business revenue, and the enterprise relies on participants as its workforce. A&nbsp;<a href="https://www.mathematica-mpr.com/news/mathematica-jobs-study-explores-social-enterprises-redf">recent evaluation</a>&nbsp;of social enterprises in California found that they increased employment levels among participants.','Social enterprises have grown in popularity in recent years, with&nbsp;<a href="https://ssir.org/topics/category/social_enterprise">active discussions</a>&nbsp;about the challenges and opportunities of melding nonprofit and for-profit business models. They have a variety of investors and financing models, with one foundation,&nbsp;<a href="http://redf.org/">REDF</a>, that focuses solely on employment-focused social enterprises and has made several commitments to expand and&nbsp;<a href="http://redf.org/what-we-do/lead/">strengthen the field</a>.'],
+		JS:['<b>Job search assistance and counseling&nbsp;</b>refers broadly to services to help employers and job seekers connect more efficiently than they might otherwise. They reduce labor market frictions by providing job candidates with information about job opportunities, in-demand skills, and training options. These services are central to the network of federally supported&nbsp;<a href="https://www.careeronestop.org/LocalHelp/AmericanJobCenters/american-job-centers.aspx">American Job Centers</a>, and are also incorporated into many other workforce programs. More specifically, such services consist of skill and interest assessments, career and training planning, case management and referrals, help with resume preparation and interviewing skills, and information on various job openings and associated skill and education requirements. They can be provided by staff or be self-service via a resource room and online offerings, and can be individualized or provided in group settings such as workshops.','<a href="http://research.upjohn.org/cgi/viewcontent.cgi?article=1161&amp;context=up_bookchapters">Past research</a>&nbsp;supports the effectiveness of publicly supported job search assistance, as does a more&nbsp;<a href="https://www.mathematica-mpr.com/our-publications-and-findings/publications/providing-public-workforce-services-to-job-seekers-15-month-impact-findings-on-the-wia-adult?MPRSource=TCSide">recent evaluation</a>&nbsp;of staff-assisted and personalized assistance in American Job Centers.'],
+		SI:['<b>Sector initiatives&nbsp;</b>are partnerships among employers, educators, and other workforce stakeholders<b>&nbsp;</b>to identify and address the workforce needs of particular industries within a regional labor market. They have a “dual customer” approach, seeking to the meet the needs of both employers and workers. These partnerships identify employers’ skill and workforce needs, aggregate employer interest and demand, and develop recruiting, assessment, and training strategies to help employers find workers with right skills. They reduce the inefficiencies of one-by-one engagements in which training organizations seek to meet the job placement and training needs of individual employers. The organization operating the sector strategy (often a training organization, consortium of employers, or local workforce investment board) develops expertise about a given industry’s occupational skill requirements, business practices, markets, and other factors that affect employers’ hiring and training needs.','A growing body of research supports their effectiveness (see&nbsp;<a href="http://www.aspenwsi.org/resource/ppvtuning-local-labor-market/">here</a>,&nbsp;<a href="http://www.mdrc.org/publication/encouraging-evidence-sector-focused-advancement-strategy-0">here</a>, and&nbsp;<a href="http://economicmobilitycorp.org/index.php?page=81">here</a>). The field is maturing, as evidenced by a&nbsp;<a href="https://www.aspeninstitute.org/publications/connecting-people-work/">book examining various aspects of sector-based workforce development&nbsp;</a>as well as networks such as the&nbsp;<a href="https://insightcced.org/our-areas-of-focus/workforce-development/national-network-of-sector-partners-nnsp/">National Network of Sector Practitioners</a>&nbsp;and the&nbsp;<a href="https://nationalfund.org/">National Fund for Workforce Solutions</a>.'],
+		"2G":['<b>Two-generation programs&nbsp;</b>meet the needs of low-income<b>&nbsp;</b>parents and their children together. Different programs emphasize&nbsp;various aspects of family and economic well-being, with some specifically focused on employment. These provide training to low-income parents for in-demand jobs coupled with quality early childhood education for their young children. A two-generation approach is not new, but a fresh wave of programs and energy has emerged in the past five to ten years; see&nbsp;<a href="http://www.futureofchildren.org/sites/futureofchildren/files/media/helping_parents_helping_children_24_01_full_journal.pdf">here</a>&nbsp;for more background.','<a href="https://captulsa.org/families/family-advancement/careeradvance/">Career<i>Advance</i></a>, a program helping parents prepare for jobs in the health care field,&nbsp;<a href="http://b.3cdn.net/ascend/91a575b42e3dc4983b_t4m6v6upy.pdf">was recently found</a>&nbsp;to have positive effects on both parents and children. A network of practitioners, researchers, philanthropists, and educators,&nbsp;<a href="http://ascend.aspeninstitute.org/">Ascend</a>, is actively supporting the adoption and refinement of two-generation approaches.'],
+		AP:['<b>Apprenticeships&nbsp;</b>take an “earn and learn” approach to education and training: apprentices earn wages while performing productive work and undergoing supervised, work-based training with related academic instruction. They represent the most structured model of employer engagement in training, since employers hire the apprentices and provide on-the-job training.',
+			'Most apprenticeships&nbsp;<a href="http://ftp.iza.org/pp46.pdf">are clustered in construction and manufacturing</a>, although they exist in other fields such as utilities, auto and truck repair, police and fire, trucking, child care, and long-term care.&nbsp;<a href="https://www.mathematica-mpr.com/our-publications-and-findings/publications/an-effectiveness-assessment-and-costbenefit-analysis-of-registered-apprenticeship-in-10-states">An analysis</a>&nbsp;of&nbsp;registered apprenticeship in 10 states found large earnings gains among those who participated. (There are also apprenticeships that are not registered with the federal or state governments, although less is known about these.) Other research is also positive: one study reported that employers participating in registered apprenticeships&nbsp;<a href="Another%20study%20found%20that%20employers%20with%20apprenticeship%20programs%20benefited%20as%20well%20in%20terms%20of%20increased%20productivity.">valued the program</a>&nbsp;and found that it helped meet their needs for skilled workers, and another identified<a href="http://www.esa.gov/reports/benefits-and-costs-apprenticeships-business-perspective">productivity gains</a>&nbsp;for&nbsp;employers with apprenticeship programs.', 'For more information, see the&nbsp;<a href="https://innovativeapprenticeship.org/">American Institute for Innovative Apprenticeship</a>.'],
+		AS:['<b>ASAP (Accelerated Study in Associate Programs)&nbsp;</b>is a comprehensive approach designed by theCity University of New York to increase the graduation rate of low-income community college students seeking an associate’s degree.&nbsp;<a href="http://www1.cuny.edu/sites/asap/">The program</a>&nbsp;requires students to attend full-time and provides a range of academic, financial, and person supports. It was created in 2007 with support from the&nbsp;<a href="http://www1.nyc.gov/site/opportunity/index.page">New York City Center for Economic Opportunity</a>&nbsp;(now known as the Mayor’s Office for Economic Opportunity).','<a href="http://www.mdrc.org/project/evaluation-accelerated-study-associate-programs-asap-developmental-education-students#overview">An evaluation</a>&nbsp;found that ASAP almost doubled graduation rates, the largest effect the researchers had found in any large-scale evaluation of a higher education program. CUNY has expanded ASAP to serve more students across its colleges, and a&nbsp;<a href="http://www.mdrc.org/publication/bringing-cuny-accelerated-study-associate-programs-asap-ohio">replication study</a>&nbsp;in Ohio community colleges is underway.']
+	};
+
+	var body_wrap = d3.select("body");
+	var show = function(id){
+		d3.event.stopPropagation();
+		var fixed = body_wrap.append("div")
+			.style("position","fixed")
+			.style("width","100%")
+			.style("height","100%")
+			.style("z-index","1000")
+			.style("background-color","rgba(5, 55, 105, 0)")
+			.style("top","0px")
+			.style("left","0px");
+		fixed.transition()
+			.style("background-color","rgba(5, 55, 105, 0.85)")
+			.style("background-color","rgba(0, 0, 0, 0.75)")
+			;
+
+		var table = fixed.append("div")
+			.style("display","table")
+			.style("max-width","900px")
+			.style("width","100%")
+			.style("height","100%")
+			.style("margin","1em auto");
+		var row = table.append("div")
+			.style("display","table-row");
+		var cell = row.append("div")
+			.style("display","table-cell")
+			.style("vertical-align","middle");
+
+		var box_wrap = cell.append("div")
+			.style("border","0px solid #ffffff")
+			.style("padding","0px")
+			.style("position","relative")
+			.style("display","block");
+
+		var svg_ribbon = box_wrap.append("div")
+								 .style("height","10px")
+								 .append("svg").attr("width","100%")
+								 .attr("height","100%")
+								 .style("x","0px")
+								 .style("y","0px")
+								.style("display","block")
+								.selectAll("rect").data([1,2,3,4,5,6,7]).enter()
+								.append("rect").attr("width",(100/7)+"%").attr("height","100%").attr("x", function(d,i){return (i*(100/7))+"%"})
+								.attr("fill", function(d,i){
+									return cols(d);
+								});
+
+		var box = box_wrap.append("div").classed("makesans",true)
+			.style("background-color","rgba(250, 250, 250, 1)")
+			.style("position","relative")
+			.style("padding","1em 1em 1em 1em")
+			.style("line-height","1.4em")
+			.style("overflow","auto")
+			.style("max-height","90vh");
 
 
-						return [{label:"25–34", value:d.a2534}, 
-								{label:"35–44", value:d.a3544}, 
-								{label:"45–44", value:d.a4554}, 
-								{label:"55–64", value:d.a5564}];
-					};
 
-	var edu_data = function(){
-			var D = [//{label:"In school", value:d.insch}, 
-					{label:"<HS", value:d.lths}, 
-					{label:"HS", value:d.hs}, 
-					{label:"Some college", value:d.sc}, 
-					{label:"Associate's", value:d.aa},
-					{label:"BA+", value:d.baplus}];
-					//console.log(d3.sum(D, function(d){return d.value}));
-			return D;
-		};
+			box.selectAll("p")
+				.data(descriptions.long[id])
+				.enter()
+				.append("p")
+				.html(function(d,i){return d})
+				.style("font-weight", function(d,i){
+					return i==0 ? "normal" : "normal";
+				})
+				.style("padding","0em 1em 1em 1em")
+				.style("margin","1em 0em 1em 0em");
 
-	var race_data = function(){
-			var D = [{label:"White", value:d.whiteNH}, 
-					{label:"Black", value:d.blackNH}, 
-					{label:"Hispanic", value:d.latino}, 
-					{label:"Asian", value:d.asianNH},
-					{label:"Other", value:d.otherNH}];
-					//console.log(d3.sum(D, function(d){return d.value}));	
-			return D;			
-		};
+		var x_height = 30;
+		var x_width = x_height;
+		var xsvg = box_wrap.append("div")
+			   .style("cursor","pointer")
+			   .classed("make-sans",true)
+			   .style("position","absolute")
+			   .style("top","-"+x_height+"px")
+			   .style("right","-"+x_width+"px")
+			   .style("width",x_width+"px")
+			   .style("height",x_height+"px")
+			   .append("svg")
+			   .attr("width","100%").attr("height","100%");
 
-	var sex_data = function(){
-			var D = [{label:"Male", value:d.male}, 
-					{label:"Female", value:1-d.male}];
-			//console.log(d3.sum(D, function(d){return d.value}));
-			return D		
-		};
+			xsvg.append("line").attr("x1","20%").attr("x2","80%").attr("y1","20%").attr("y2","80%");
+			xsvg.append("line").attr("x1","20%").attr("x2","80%").attr("y1","80%").attr("y2","20%");
 
-	var disability_data = function(){
-			return [{label:"Disability", value:d.dis}, 
-					{label:"No disability", value:1-d.dis}];
-			
-		};
+			xsvg.selectAll("line").attr("stroke","#ffffff")
+									.attr("stroke-width","5px");
+		   
 
-	var lep_data = function(){
-			return [{label:"LEP", value:d.lep}, 
-					{label:"Non-Lep", value:1-d.lep}];
-		};
+		box.on("mousedown", function(d,i){
+			d3.event.stopPropagation();
+		});
 
-	var children_data = function(){
-			return [{label:"One or more", value:d.children}, 
-					{label:"None", value:1-d.children}]
-					;
-		};
+		fixed.on("mousedown", function(d,i){
+			fixed.remove();
+		});
+		//
+	};//end show
 
-	var looking_data = function(){
-			return [{label:"Looking", value:d.unemployed},
-					{label:"Not looking", value:1-d.unemployed}
-					];
-		};
 
-		//Worked in last year
-		//(function(){
-		//	var vals = [{label:"Yes", value:d.lastworked_pastyr}, 
-		//				{label:"No", value:1-d.lastworked_pastyr}
-		//				]
-		//				;
-		//	chartWidget("Worked in the last year", vals, true);
-		//})();
+	//use 1: layout all the interventions in a large grid with text
+	I.grid = function(container){
+		var wrap = d3.select(container);
 
-	var chartWidgetDeprecated = function(title, data, stacked, wrapper){
-			var stack = arguments.length > 2 ? !!stacked : false;
-			var bars = data.filter(function(d){return d.value >= 0.0045});
-			var colScale = d3.interpolateLab("#eeeeee", COLOR);
+		var rows = wrap.selectAll("div").data([descriptions.initials.slice(0,4),descriptions.initials.slice(4)])
+							.enter().append("div").classed("c-fix",true).style("margin","0em 0em");
 
-			var wrap = wrapper.append("div").classed("chart-widget", true);
-			wrap.append("p").html(title).style("margin","0em 0em 0em 0em");
-			var svg = wrap.append("svg");
-			var bar_height = 15;
-			var pad = 5;
-			var w = 320;
-			var h = !!stack ? bar_height + pad*2 : ((bars.length*bar_height) + (bars.length*1) + (2*pad));
-			svg.style("height",h+"px").style("width",w+"px");
+		var tiles = rows.selectAll("div.subway-tile").data(function(d){return d})
+							.enter().append("div").classed("subway-tile",true);
 
-			var cumulative = 0;
+		var headers = tiles.append("div").classed("tile-header",true);
+		var dots = headers.append("div").classed("dot",true).style("cursor","pointer");
+		var dot_labels = dots.append("p").text(function(d){return d});
 
-			var mapped = bars.map(function(d,i){
-				var obs = {};
-				obs.label = d.label;
-				obs.value = d.value;
-				obs.width = (obs.value*100)+"%";
-				if(!!stack){
-					obs.x = (cumulative*100)+"%";
-					obs.y = pad;
-					cumulative = cumulative + d.value;
-				}
-				else{
-					obs.y = pad + (i*(bar_height+1));
-					obs.x = "0%";
-				}
-				return obs;
-			});
+		dots.on("mousedown", function(d){show(d);});
 
-			svg.selectAll("rect").data(mapped).enter().append("rect")
-					.attr("x", function(d){return d.x})
-					.attr("y", function(d){return d.y})
-					.attr("width", function(d){return d.width})
-					.attr("height", function(d){return bar_height})
-					.attr("stroke", "#ffffff")
-					.attr("stroke-width",0)
-					.attr("fill", function(d,i){
-						return COLOR;
-						//return !!stack && i==1 ? "#dddddd" : COLOR
-					})
-					.attr("fill-opacity", function(d,i){
-						return !!stack && i==1 ? 0.35 : 1;
-					})
-					.style("shape-rendering","crispEdges")
-					;
+		var content = tiles.append("div").classed("tile-content reading",true);
+		var text = content.selectAll("p").data(function(d){return descriptions.short[d]})
+							.enter().append("p").html(function(d){return d});
+	};
 
-		};
-		
-		chartWidget("Age", age_data(), false, chartWrap1);
-		chartWidget("Educational attainment", edu_data(), false, chartWrap1);
-		chartWidget("Race", race_data(), false, chartWrap1);	
-		chartWidget("Male share", sex_data(), true, chartWrap2);
-		chartWidget("Disability status", disability_data(), true, chartWrap2);
-		chartWidget("Limited English proficiency (LEP)", lep_data(), true, chartWrap2);
-		chartWidget("Is caring for children", children_data(), true, chartWrap2);
-		chartWidget("Looking for work", looking_data(), true, chartWrap2);
+	I.grid_small = function(container, supercluster, text_color){
+		var outer_wrap = d3.select(container);
 
+		var turn_on = descriptions.links[supercluster+""];
+
+		var col = arguments.length > 2 ? text_color : "#333333";
+
+		outer_wrap.select("div.subway-tile-small-grid").remove();	
+
+		var wrap = outer_wrap.append("div").classed("c-fix subway-tile-small-grid",true).style("padding-left","0px");	
+
+		var text_wrap = wrap.append("div").classed("c-fix",true);
+			text_wrap.append("p").text("Effective practices for this group")
+						.style("float","left").style("margin","0em 1em 0em 0")
+						.style("padding","0px 10px 0em 10px")
+						;
+
+		var rows = wrap.selectAll("div.intervention-row").data([descriptions.initials.slice(0)]) //,descriptions.initials.slice(4)])
+							.enter().append("div").classed("c-fix intervention-row",true).style("margin","0.75em 0em 0.5em 0px")
+							.style("float","left");
+								
+							
+		var dots = rows.selectAll("div.subway-tile-dot").data(function(d){return d})
+							.enter().append("div").classed("subway-tile-dot",true).style("float","left")
+							.style("margin","0em 0.175em 0.35em 0.175em")
+							.style("cursor",function(d){
+								return turn_on.hasOwnProperty(d) ? "pointer" : "auto";
+							})
+							.style("background-color", function(d){
+								if(turn_on.hasOwnProperty(d)){
+									return text_color;
+								}
+								else{
+									return "#dddddd";
+								}
+							});
+
+		dots.on("mousedown", function(d){
+			if(turn_on.hasOwnProperty(d)){
+				show(d);
+			}
+		});
+
+		dots.append("p").text(function(d){return d})
+							.style("color", function(d){
+								if(turn_on.hasOwnProperty(d)){
+									return supercluster in {"2":2, "6":1, "7":1} ? "#111111" : "#ffffff";
+								}
+								else{
+									return "#ffffff";
+								}
+							});	
+
+		var timer;
+		var hover_text = wrap.append("p").style("margin","0em 0em 0em 10px").style("font-size","1em").style("font-style","italic").style("clear","both");
+		dots.on("mouseenter", function(d){
+			clearTimeout(timer);
+			hover_text.text(descriptions.titles[d]).transition().duration(0).style("opacity",turn_on.hasOwnProperty(d) ? 1 : 0.35);
+		});	
+		dots.on("mouseleave", function(d){
+			timer = setTimeout(function(){
+				hover_text.text("").transition().duration(400).style("opacity","0");
+			},150);
+		});	
+
+	};
+
+	return I;
 }
 
 function supercluster_profiles(container){
 
 	var supercluster_profile_data = cluster_data.super;
-	console.log(supercluster_profile_data);
 
 	var order = {"3":1, "1":2, "2":3, "5":4, "4":5, "7":6, "6":7};
 	supercluster_profile_data.sort(function(a,b){
@@ -1288,14 +1283,14 @@ function supercluster_profiles(container){
 					 .enter().append("div")
 					 .classed("supercluster-profile",true);
 
+	var I = interventions();
+
 	slides.each(function(d,i){
-		//console.log(d);
 
 		var thiz = d3.select(this);
 
 		var COLOR = sc_stacker.color(d.superclus2);
-		//thiz.append("div").classed("h-border",true);
-		//console.log(d);
+
 		var title_box = thiz.append("div").style("margin-bottom","1em");
 		var title = title_box.append("p")
 							 .classed("cluster-title",true);
@@ -1310,75 +1305,42 @@ function supercluster_profiles(container){
 			return {count: d.count, id:d.superclus2, mergeid:d.superclus2, group:null, share:d.count/tot_oow}
 		});
 
-		//don't re-sort...
-		/*.sort(function(a,b){
-			var compare = 0;
-			if(a.id==d.superclus2){
-				compare = -1;
-			}
-			else if(b.id==d.superclus2){
-				compare = 1;
-			}
-			else{
-				compare = a.id - b.id;
-			}
-			return compare;
-		});*/
+
 
 		sc_stacker.stack(rect_data, svg, null, true, d.superclus2);
 		
 
-		var content = thiz.append("div")
-						  .style("min-height","100px")
-						  .style("padding","1em")
-						  .style("margin","0em 0em 0em 0em")
-						  .style("width","100%")
-						  .classed("makesans c-fix",true);
+		var wrap = thiz.append("div").classed("c-fix topline-bar-charts makesans",true);
 
-		var bar_chart_wrap = content.append("div").style("float","left").style("margin-top","2em");
+		//overview_text
+		var left_side = wrap.append("div").classed("left40",true).style("margin-top","2em");
+		var overview_wrap = left_side.append("div").classed("reading",true).style("margin-left","10px");
+			overview_wrap.append("p").classed("font1x",true).text("Overview").style("font-weight","bold").style("margin-bottom","0.4em");
+			overview_wrap.append("p").text(sc_stacker.description(d.superclus2));
+
+		var intervention_wrap = left_side.append("div").classed("c-fix",true);
+
+		I.grid_small(intervention_wrap.node(), d.superclus2, COLOR);
+		
+		//bar charts
+		var bar_chart_wrap = wrap.append("div").style("float","left").classed("left60",true).style("margin-top","2em");
+
 
 		bar_charts(d, bar_chart_wrap, COLOR);
 
-		var textWrap = content.append("div")
-								.style("float","right")
-								.classed("reading",true)
-								.style("margin","3em 2em 0em 0em")
-								.style("max-width","480px")
-								.append("p")
-								.text("[130-140 word overview of group.] Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus iaculis, risus at finibus commodo, lorem leo suscipit ligula, eget vestibulum turpis lectus a arcu. Pellentesque elementum ex vitae risus maximus maximus eu sit amet mauris. Donec odio sem, pharetra in luctus a, bibendum sit amet ex. Aenean arcu nunc, ultrices vitae tortor quis, commodo hendrerit elit. Donec elementum, nisl et tincidunt pretium, neque diam ornare odio, ut congue nulla leo ac tellus. Phasellus ipsum lacus, scelerisque nec urna ac, sollicitudin eleifend enim. Praesent gravida tempor nisl at lacinia. Aliquam tincidunt enim ac turpis pretium, sed lacinia tortor sollicitudin. Quisque nec erat magna. Curabitur sodales, nisl eu commodo aliquet, mi lorem luctus felis, at euismod ipsum elit non leo. Integer non eleifend turpis. Vivamus feugiat sem eu libero accumsan ornare.");
-
-
-		var meet = content.append("div").style("margin","1em 0em 0em 0em")
+		var meet = wrap.append("div").style("margin","1em 0em 0em 0em")
 										.style("padding","0em 0em 0em 0em")
 										.style("clear","both")
 										.classed("c-fix",true);
 
-		meet.append("p").text("Meet avatar1 and avatar2")
-						.style("padding","1em 0em 0.25em 0em")
-						.style("font-weight","bold");
-
-		var profile1 = meet.append("div").classed("avatar-profile c-fix",true).style("margin-right","10%");
-		var avatar1 = profile1.append("div").classed("avatar",true).append("img")
-								.attr("src", "./build/wireframes/avatar1.png")
-								.attr("alt", "Avatar image");
-			profile1.append("p").classed("avatar-text",true)
-								  .text("Avatar1 is ... [Description here...] Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin blandit malesuada erat, eu scelerisque orci aliquet sagittis. Vivamus iaculis, risus at finibus commodo, lorem leo suscipit ligula, eget vestibulum turpis lectus a arcu. Pellentesque elementum ex vitae risus maximus maximus eu sit amet mauris.");
-
-		var profile2 = meet.append("div").classed("avatar-profile c-fix",true);
-		var avatar2 = profile2.append("div").classed("avatar",true).append("img")
-								.attr("src", "./build/wireframes/avatar2.png")
-								.attr("alt", "Avatar image");
-			profile2.append("div").classed("avatar-text",true)
-								  .append("p")
-								  .text("Avatar2 is ... [Description here...] Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin blandit malesuada erat, eu scelerisque orci aliquet sagittis. Vivamus iaculis, risus at finibus commodo, lorem leo suscipit ligula, eget vestibulum turpis lectus a arcu. Pellentesque elementum ex vitae risus maximus maximus eu sit amet mauris.");
-
+		avatars(meet.node(), d.superclus2);
 	});
 
 }
 
-//mapping module
-
 function puma_maps(container){
+
+
 	var cluster_title = sc_stack().title;
 	var cluster_color = sc_stack().color;
 
@@ -1442,10 +1404,8 @@ function puma_maps(container){
 
 		var sm_width = Math.floor(width/num_wide);
 
-		//var w = group == "ALL" ? sm_width : (width > 900 ? 900 : (width < 320 ? 320 : width));
 		var w = sm_width;
 		var h = w*aspect;
-		//var data = group === "ALL" ? [obj(1), obj(2), obj(3), obj(4), obj(5), obj(6), obj(7)] : [obj(superclus, group)];
 
 		var tiles = wrap.selectAll("div.map-tile").data(rect_data);
 		tiles.exit().remove();
@@ -1453,7 +1413,6 @@ function puma_maps(container){
 		o.tiles = tiles.enter().append("div").classed("map-tile",true).merge(tiles)
 						.style("float","left")
 						.style("width",w+"px")
-						//.style("height",h+"px")
 						;
 
 		o.width = w;
@@ -1533,10 +1492,9 @@ function puma_maps(container){
 		if(topo_repo.hasOwnProperty(geo_id)){
 			var topo = topo_repo[geo_id];
 			callback(topo);
-			//console.log("geo in repo");
 		}
 		else{
-			var file = "data/maps/"+geo_id+".json";
+			var file =  dir.url("maps", geo_id+".json");
 			d3.json(file, function(err, dat){
 				if(!!err){
 					callback(null);
@@ -1546,9 +1504,7 @@ function puma_maps(container){
 					callback(dat);
 				}
 			});
-			//console.log("geo NOT in repo");
 		}
-		//var file = "build/data/shapefiles/subsetted/geojson/"+id;		
 	};
 
 	//the main draw function
@@ -1578,7 +1534,6 @@ function puma_maps(container){
 			}
 			else{
 				wrap.style("visibility","visible").style("height","auto");
-				//map_title.style("visibility","visible");
 				draw(group, rect_data_, topo);
 
 			}
@@ -1587,192 +1542,13 @@ function puma_maps(container){
 		get_topo(id, async_callback);
 	};
 
-
-
-
-
 	//draw function return
 	return do_all;
 }
 
-function interventions(){
-	var I = {};
+//v1.0 developed for congressional district poverty
 
-	// Order and final names of major groups:
-	// 1.“Young, less-educated, and diverse” (supercluster 3)
-	// 2.“Less-educated prime-age people” (supercluster 1)
-	// 3.“Diverse, less-educated, and eyeing retirement” (supercluster 2)
-	// 4.“Motivated and moderately educated younger people” (supercluster 5)
-	// 5.“Moderately educated older people” (supercluster 4)
-	// 6.“Highly educated and engaged younger people” (supercluster 7)
-	// 7.“Highly educated, high-income older people” (supercluster 6)
-
-	var descriptions = {};
-
-	descriptions.initials = ["BP","TJ","SE","JS","SI","2G","AP","AS"];
-
-	descriptions.titles = {
-		BP:"Bridge programs",
-		TJ:"Transitional jobs",
-		SE:"Social enterprises",
-		JS:"Job search assistance and counseling",
-		SI:"Sector initiatives",
-		"2G":"Two-generation programs",
-		AP:"Apprenticeships",
-		AS:"ASAP (Accelerated Study in Associate Programs)"
-	};
-
-	descriptions.links = {
-		"ALL":{"JS":1},
-		"1":{"JS":1, "BP":1, "TJ":1, "SE":1, "SI":1, "2G":1, "AP":1},
-		"2":{"JS":1},
-		"3":{"JS":1, "BP":1, "TJ":1, "SE":1, "SI":1, "2G":1, "AP":1},
-		"4":{"JS":1},
-		"5":{"JS":1, "BP":1, "SI":1, "2G":1, "AP":1, "AS":1},
-		"6":{"JS":1},
-		"7":{"JS":1}
-	};
-
-	descriptions.short = {
-		BP:["<b>Bridge programs</b> prepare people with low academic skills for further education and training, sometimes in combination with occupational skills training"],
-		TJ:["<b>Transitional job programs</b> provide short-term subsidized employment and supportive services to people with limited work experience and barriers to employment, and help participants find unsubsidized jobs"],
-		SE:["<b>Social enterprises</b> are mission-driven business enterprises that hire people with limited work experience and barriers to employment to carry out the work of the business. The enterprise also provides supportive services to workers and helps them find other employment opportunities."],
-		JS:["<b>Job search assistance and counseling</b> is a central feature of the public workforce system’s American Job Centers and other employment programs. It consists of in-person and individualized assistance, including skill and interest assessments, career and training planning, case management and referrals, and help with resume preparation and interviewing skills."],
-		SI:["<b>Sector initiatives</b> identify employers’ skill and workforce needs in a given industry and region and develop recruiting, assessment, and training strategies to help employers find workers with right skills."],
-		"2G":["<b>Two-generation programs</b> link education, job training and career-building for low-income parents with early childhood education for their children, thus building human capital across generations."],
-		AP:["<b>Apprenticeships</b> combine paid employment with on-the-job training and related classroom instruction."],
-		AS:["<b>ASAP</b> (Accelerated Study in Associate Programs) was designed by the City University of New York to increase the graduation rate of low-income community college students seeking an associate’s degree. The program requires students to attend full-time and provides a range of academic, financial, and person supports."]
-	};
-
-	descriptions.long = {
-		BP:["<b>Bridge programs</b> prepare people with low academic skills for further education and training, sometimes in combination with occupational skills training"],
-		TJ:["<b>Transitional job programs</b> provide short-term subsidized employment and supportive services to people with limited work experience and barriers to employment, and help participants find unsubsidized jobs"],
-		SE:["<b>Social enterprises</b> are mission-driven business enterprises that hire people with limited work experience and barriers to employment to carry out the work of the business. The enterprise also provides supportive services to workers and helps them find other employment opportunities."],
-		JS:["<b>Job search assistance and counseling</b> is a central feature of the public workforce system’s American Job Centers and other employment programs. It consists of in-person and individualized assistance, including skill and interest assessments, career and training planning, case management and referrals, and help with resume preparation and interviewing skills."],
-		SI:["<b>Sector initiatives</b> identify employers’ skill and workforce needs in a given industry and region and develop recruiting, assessment, and training strategies to help employers find workers with right skills."],
-		"2G":["<b>Two-generation programs</b> link education, job training and career-building for low-income parents with early childhood education for their children, thus building human capital across generations."],
-		AP:["<b>Apprenticeships</b> combine paid employment with on-the-job training and related classroom instruction."],
-		AS:["<b>ASAP</b> (Accelerated Study in Associate Programs) was designed by the City University of New York to increase the graduation rate of low-income community college students seeking an associate’s degree. The program requires students to attend full-time and provides a range of academic, financial, and person supports."]
-	};
-
-	var body_wrap = d3.select("body");
-	var show = function(id){
-		d3.event.stopPropagation();
-		var fixed = body_wrap.append("div")
-			.style("position","fixed")
-			.style("width","100%")
-			.style("height","100%")
-			.style("z-index","1000")
-			.style("background-color","rgba(5, 55, 105, 0)")
-			.style("top","0px")
-			.style("left","0px");
-		fixed.transition()
-			.style("background-color","rgba(5, 55, 105, 0.85)")
-			;
-
-		var table = fixed.append("div")
-			.style("display","table")
-			.style("max-width","800px")
-			.style("width","100%")
-			.style("height","100%")
-			.style("margin","1em auto");
-		var row = table.append("div")
-			.style("display","table-row");
-		var cell = row.append("div")
-			.style("display","table-cell")
-			.style("vertical-align","middle");
-
-		var box_wrap = cell.append("div")
-			.style("border","1px solid #ffffff")
-			.style("padding","1px")
-			.style("position","relative");
-			
-		var box = box_wrap.append("div").classed("makesans",true)
-			.style("background-color","rgba(250, 250, 250, 1)")
-			.style("position","relative")
-			.style("padding","1em 1em")
-			.style("line-height","1.6em");
-
-			box.selectAll("p")
-				.data(descriptions.long[id])
-				.enter()
-				.append("p")
-				.html(function(d,i){return d})
-				.style("font-weight", function(d,i){
-					return i==0 ? "normal" : "normal";
-				});
-
-		var x_height = 30;
-		var x_width = x_height;
-		var xsvg = box_wrap.append("div")
-			   .style("cursor","pointer")
-			   .classed("make-sans",true)
-			   .style("position","absolute")
-			   .style("top","-"+x_height+"px")
-			   .style("right","-"+x_width+"px")
-			   .style("width",x_width+"px")
-			   .style("height",x_height+"px")
-			   .append("svg")
-			   .attr("width","100%").attr("height","100%");
-
-			xsvg.append("line").attr("x1","20%").attr("x2","80%").attr("y1","20%").attr("y2","80%");
-			xsvg.append("line").attr("x1","20%").attr("x2","80%").attr("y1","80%").attr("y2","20%");
-
-			xsvg.selectAll("line").attr("stroke","#ffffff")
-									.attr("stroke-width","5px");
-		   
-
-		fixed.on("mousedown", function(d,i){
-			fixed.remove();
-		});
-		//
-	};//end show
-
-
-	//use 1: layout all the interventions in a large grid with text
-	I.grid = function(container){
-		var wrap = d3.select(container);
-
-		var rows = wrap.selectAll("div").data([descriptions.initials.slice(0,4),descriptions.initials.slice(4)])
-							.enter().append("div").classed("c-fix",true).style("margin","0em 0em");
-
-		var tiles = rows.selectAll("div.subway-tile").data(function(d){return d})
-							.enter().append("div").classed("subway-tile",true);
-
-		var headers = tiles.append("div").classed("tile-header",true);
-		var dots = headers.append("div").classed("dot",true).style("cursor","pointer");
-		var dot_labels = dots.append("p").text(function(d){return d});
-
-		dots.on("mousedown", function(d){show(d);});
-
-		var content = tiles.append("div").classed("tile-content reading",true);
-		var text = content.selectAll("p").data(function(d){return descriptions.short[d]})
-							.enter().append("p").html(function(d){return d});
-	};
-
-	I.grid_small = function(container, supercluster, text_color){
-		var outer_wrap = d3.select(container);
-
-		var col = arguments.length > 2 ? text_color : "#333333";
-
-		outer_wrap.select("div.subway-tile-small-grid").remove();
-
-		var wrap = outer_wrap.append("div").classed("c-fix subway-tile-small-grid",true).style("padding-left","0px");
-
-		var rows = wrap.selectAll("div").data([descriptions.initials.slice(0,4),descriptions.initials.slice(4)])
-							.enter().append("div").classed("c-fix",true).style("margin","0.75em 0em 0.75em 0px")
-							.style("float","left");
-								
-							
-		var dots = rows.selectAll("div.subway-tile-dot").data(function(d){return d})
-							.enter().append("div").classed("subway-tile-dot",true).style("float","left")
-							.style("margin-right","0.35em");
-
-		dots.append("p").text(function(d){return d});						
-	};
-
-	return I;
-}
+//viewport dimensions
 
 function topline(container, cluster_data){
 	var outer_wrap = d3.select(container).append("div").style("padding-right","2em");
@@ -1791,7 +1567,6 @@ function topline(container, cluster_data){
 	var I = interventions();
 
 	refresh.group = function(data, supercluster, text_color){
-		//var min_width = dimensions().width < 1024 ? 280 : 340;
 
 		outer_wrap.select("div").remove();
 		var wrap = outer_wrap.append("div").style("min-height","30px"); //.style("min-width",min_width+"px");
@@ -1801,21 +1576,13 @@ function topline(container, cluster_data){
 			tile1.append("p").text("Out-of-work total for group").style("border-bottom","1px dotted "+text_color);
 		var total_out_of_work = tile1.append("p").classed("big-stat",true).text(format.num0(data.count));
 
-		var text_wrap = wrap.append("div").classed("c-fix",true);
-		text_wrap.append("p").text("Effective practices for this group")
-					.style("float","left").style("margin","0em 0em 0.25em 0px")
-					.style("padding","0px 10px 0.25em 0px")
-					.style("border-bottom","1px dotted "+text_color)
-					;
 		var iwrap = wrap.append("div");
 
-		I.grid_small(iwrap.node(), null, text_color);
+		I.grid_small(iwrap.node(), supercluster, text_color);
 
-		//console.log(JSON.stringify(data));
 	};
 
 	refresh.all = function(total, share, fips_final){
-		//var min_width = dimensions().width < 1024 ? 280 : 340;
 
 		outer_wrap.select("div").remove();
 
@@ -1946,7 +1713,7 @@ function jurisdiction_profiles(container){
 		var bar_chart_wrap = wrap.append("div").style("float","left").classed("left70",true).style("margin-top","2em");
 
 		//map wrapper
-		var map_wrap = outer_wrap.append("div").style("min-height","100px");
+		var map_wrap = outer_wrap.append("div").style("min-height","20px");
 
 	//END DOM STRUCTURE------------
 
@@ -1963,8 +1730,6 @@ function jurisdiction_profiles(container){
 
 		bar_charts(data, bar_chart_wrap, color);
 	}
-
-	//var I = interventions();
 
 	//DRAW THE JUSRISDICTION PROFILE (id is the jurisdiction id)
 	function draw(id){
@@ -2078,229 +1843,25 @@ function jurisdiction_profiles(container){
 	//enables multiple headers on a single page
 	//makes parent element relative positioned
 
-//"out of work" population project, june 2017
-//add browser compat message: test for svg, array.filter and map
+//"out of work" june 2017
 
 //shared js-modules
 //out of work modules
-dir.local("./").add("data");
-//dir.add("data", "outof-work/data");
-
 //main out of work function to run on load
 function main(){
+
+	dir.local("./");
+	dir.add("avatars", "data/avatars");
+	dir.add("maps", "data/maps");
+
+	//production data
+	//dir.add("avatars", "out-of-work/data/avatars");
+	//dir.add("maps", "outof-work/data/maps");
 
 	funnel(document.getElementById("view0-wrap"));
 	supercluster_profiles(document.getElementById("view2-wrap"));
 	jurisdiction_profiles(document.getElementById("jurisdiction-profile"));
 	interventions().grid(document.getElementById("interventions-grid"));
-
-	//build out header
-	//var mhead = header()
-	//		.parent(document.getElementById("out-of-work"))
-	//		.height(140, 70)
-	//		.build(document.getElementById("oow-header"));
-
-	//var header_content = mhead.content
-	//						.append("div")
-	//						.style("padding", "5px 0em 0px 0em")
-	//						.classed("c-fix",true)
-	//						.html('<p style="text-align:center">Navigation menu / jurisdiction selection</p><p style="text-align:center">[Jump to: <a href="#view2-wrap">1) groups</a>, <a href="#view3-wrap">2) jurisdiction data</a> | Navigation will afix to the bottom of screen]</p>');
-
-	//var selects = header_content.append("div").style("float","right").classed("c-fix",true);
-
-
-	return null;
-	//
-
-	//scroll show 0
-	var ss0 = scroll_show(document.getElementById("view0-wrap"));
-
-	//add panels to scroll show -- the first panel is fixed and contains the dot matrix
-	var panel_00 = ss0.panel();
-	var panel_01 = ss0.panel();
-	var panel_02 = ss0.panel();
-	var panel_03 = ss0.panel();
-
-	
-	
-	//dot matrix to first panel
-	var dm0 = dot_matrix(panel_00.node, 5);
-
-	dm0.title(['In the U.S. [OR SELECT JURISDICTION], there are xxx,xxx people between the ages of 25–64  //  <b>1 dot (<span class="divdot"></span>) = xx people</b>']);
-
-	//scroll show 1
-	var ss1 = scroll_show(document.getElementById("view1-wrap"));
-	var panel_10 = ss1.panel();
-	var dm1 = dot_matrix(panel_10.node, 5);
-
-	dm1.title(['In 137 large U.S. jurisdictions, there are xxx,xxx people between the ages of 25–64 who are "out of work"  //  <b>1 dot (<span class="divdot"></span>) = xx people</b>']);
-
-	
-	//colors
-	var scc = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6'];
-
-	//base view
-	var view0 = dm0.dim().responsive().view();
-		view0.group("Total pop aged 25-64", "tot", 100)
-			 .title("Total pop descriptive stats: Need to think about what stats to present. Or do we just want to have text?")
-				 .next()
-				 .group("Unemployed, 25-64", "unemp", 5, "red", "tot")
-				 .group("Not in the labor force, 25-64", "nilf", 23, "#666666", "tot")
-				 .group("Employed, 25-64", "emp", 72, "#666666", "tot")
-				 .title("Unemployed pop descriptive stats: It doesn't really make sense to have the same stats for each view. E.g. the unemployed are looking for work by definition.")
-					 .next()
-					 .group("Unemployed, 25-64", "unemp", 5, "red", "unemp")
-					 .group("Not in the labor force, 25-64", "nilf", 23, "pink", "nilf")
-					 .group("Employed, 25-64", "emp", 72, "#666666", "emp")
-					 .title("Not in the labor force descriptive stats")
-						 .next()
-						 .group("Out of work, 18-64", "oow", 4.5, "red", "unemp")
-						 .group("Out of work, 18-64", "oow", 9.2, "red", "nilf")
-						 .group("Other", "other", 0.5, "#666666", "unemp")
-						 .group("Other", "other", 13.8, "#666666", "nilf")
-						 .group("Other", "other", 72, "#666666", "emp");
-			
-	var view1 = dm1.dim().responsive().view();		 	
-		view1.group("Median age: 30, Low education", "oow1", 10, "#666666", "oow")
-			.group("Median age: 44, Low education", "oow2", 37, "#666666", "oow")
-			.group("Median age: 58, Low education", "oow3", 7, "#666666", "oow")
-			.group("Median age: 33, Moderate education", "oow4", 14, "#666666", "oow")
-			.group("Median age: 55, Moderate education", "oow5", 12, "#666666", "oow")
-			.group("Median age: 34, High education", "oow6", 9, "#666666", "oow")
-			.group("Median age: 56, High education", "oow7", 11, "#666666", "oow")
-			.title("Young, low educational attainment")
-			.next()
-
-			.group("Median age: 30, Low education", "oow1", 10, scc[0], "oow1")
-			.group("Median age: 44, Low education", "oow2", 37, "#666666", "oow2")
-			.group("Median age: 58, Low education", "oow3", 7, "#666666", "oow3")
-			.group("Median age: 33, Moderate education", "oow4", 14, "#666666", "oow4")
-			.group("Median age: 55, Moderate education", "oow5", 12, "#666666", "oow5")
-			.group("Median age: 34, High education", "oow6", 9, "#666666", "oow6")
-			.group("Median age: 56, High education", "oow7", 11, "#666666", "oow7")
-			.title("Young, low educational attainment")
-			.next()
-
-			.group("Median age: 30, Low education", "oow1", 10, scc[0], "oow")
-			.group("Median age: 44, Low education", "oow2", 37, scc[1], "oow")
-			.group("Median age: 58, Low education", "oow3", 7, scc[2], "oow")
-			.group("Median age: 33, Moderate education", "oow4", 14, scc[3], "oow")
-			.group("Median age: 55, Moderate education", "oow5", 12, scc[4], "oow")
-			.group("Median age: 34, High education", "oow6", 9, scc[5], "oow")
-			.group("Median age: 56, High education", "oow7", 11, scc[6], "oow")
-			.title("Young, low educational attainment")
-			.next()
-
-			.group("Median age: 30, Low education", "oow1", 10, scc[0], "oow")
-			.group("Median age: 44, Low education", "oow2", 37, scc[1], "oow")
-			.group("Median age: 58, Low education", "oow3", 7, scc[2], "oow")
-			.group("Median age: 33, Moderate education", "oow4", 14, scc[3], "oow")
-			.group("Median age: 55, Moderate education", "oow5", 12, scc[4], "oow")
-			.group("Median age: 34, High education", "oow6", 9, scc[5], "oow")
-			.group("Median age: 56, High education", "oow7", 11, scc[6], "oow")
-			.title("Young, low educational attainment")
-			.next()
-
-		 	;
-
-	//add a single group to the view, as well as three subgroups
-	panel_00.activate(function(){
-		view0.next(0).bind(); //draw level 0	
-	});
-				 
-	//next view is bound to panel_01
-	panel_01.activate(function(){
-		view0.next(1).bind(); //draw level 1		
-	});
-
-	//next view is bound to panel_02
-	panel_02.activate(function(){
-		view0.next(2).bind(); //draw level 2	
-	});
-
-	//next view is bound to panel_02
-	panel_03.activate(function(){
-		view0.next(3).bind(); //draw level 3	
-	});
-
-	//next view is bound to panel_10
-	panel_10.activate(function(){
-		view1.next(0).bind(); //draw level 2	
-	});
-
-
-	//group(name, id, num, color, merge_id)
-
-	return null;
-
-	//add a single group to the view, as well as three subgroups
-	var view2 = dm2.dim().view();
-	var v2g1 = view2.group("Total pop 18-64", "tot", 100)
-
-					 .init();
-
-	//add a single group to the view, as well as three subgroups
-	var view3 = dm3.dim().view();
-	var v3g1 = view3.group("Employed, 18-64", "emp", 72, "#a6cee3")
-					.subgroup("Out of work", "oow", 0, "#0d73d6")
-					.subgroup("Not out of work", "noow", 72, "#999999");
-	var v3g2 = view3.group("Unemployed, 18-64", "unemp", 5, "#1f78b4")
-					.subgroup("Out of work", "oow", 4, "#0d73d6")
-					.subgroup("Not out of work", "noow", 1, "#999999");
-	var v3g3 = view3.group("Not in the labor force", "nilf", 23, "#b2df8a")
-					.subgroup("Out of work", "oow", 10, "#0d73d6")
-					.subgroup("Not out of work", "noow", 13, "#999999");
-	
-	view3.init();
-
-	view3.drawGroups(0);
-
-	//add a single group to the view, as well as three subgroups
-	var scc = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6'];
-	var view4 = dm4.view();
-	var v4g1 = view4.group("Out of work, 18-64", "emp", 72, "666666")
-					.subgroup("Out of work", "oow1", 10, scc[0])
-					.subgroup("Out of work", "oow2", 20, scc[1])
-					.subgroup("Out of work", "oow3", 18, scc[2])
-					.subgroup("Out of work", "oow4", 22, scc[3])
-					.subgroup("Out of work", "oow5", 40, scc[4])
-					.subgroup("Out of work", "oow6", 12, scc[5])
-					.subgroup("Out of work", "oow7", 3, scc[6])
-					.subgroup("Out of work", "oow8", 1, scc[7])
-					.subgroup("Out of work", "oow9", 10, scc[8]);
-		v4g1.subgroups.sum();
-
-
-	
-	view4.init();
-
-	waypoint(dm2.node()).activate(function(){
-		view2.drawSubgroups(2000);
-	}).buffer(0.2);
-
-	waypoint(dm3.node()).activate(function(){
-		view3.drawSubgroups(3000);
-	}).buffer(0.2);
-
-	waypoint(dm4.node()).activate(function(){
-		view4.drawSubgroups(3000);
-	}).buffer(0.2);
-
-	//console.log(total.subgroups.sum());
-
-	//console.log(total);
-
-
-	var dmtimer;
-	window.addEventListener("resize", function(){
-		clearTimeout(dmtimer);
-		dmtimer = setTimeout(function(){
-			view1.init();
-			view2.init();
-			view3.init();
-			view4.init();
-		}, 250);
-	});
 
 } //close main()
 

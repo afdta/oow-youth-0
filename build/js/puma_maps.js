@@ -1,8 +1,9 @@
 import sc_stack from './sc_stack.js';
-
-//mapping module
+import dir from '../../../js-modules/rackspace.js';
 
 export default function puma_maps(container){
+
+
 	var cluster_title = sc_stack().title;
 	var cluster_color = sc_stack().color;
 
@@ -66,10 +67,8 @@ export default function puma_maps(container){
 
 		var sm_width = Math.floor(width/num_wide);
 
-		//var w = group == "ALL" ? sm_width : (width > 900 ? 900 : (width < 320 ? 320 : width));
 		var w = sm_width;
 		var h = w*aspect;
-		//var data = group === "ALL" ? [obj(1), obj(2), obj(3), obj(4), obj(5), obj(6), obj(7)] : [obj(superclus, group)];
 
 		var tiles = wrap.selectAll("div.map-tile").data(rect_data);
 		tiles.exit().remove();
@@ -77,7 +76,6 @@ export default function puma_maps(container){
 		o.tiles = tiles.enter().append("div").classed("map-tile",true).merge(tiles)
 						.style("float","left")
 						.style("width",w+"px")
-						//.style("height",h+"px")
 						;
 
 		o.width = w;
@@ -116,7 +114,6 @@ export default function puma_maps(container){
 					.style("position","absolute")
 					.style("bottom","1px")
 					.style("margin","0em 10px 5px 10px")
-					//.style("font-weight", d.group === group ? "bold" : "normal")
 					;
 
 			var svg = div.append("svg").attr("height",L.height+"px").attr("width",L.width+"px");
@@ -159,10 +156,9 @@ export default function puma_maps(container){
 		if(topo_repo.hasOwnProperty(geo_id)){
 			var topo = topo_repo[geo_id];
 			callback(topo);
-			//console.log("geo in repo");
 		}
 		else{
-			var file = "data/maps/"+geo_id+".json";
+			var file =  dir.url("maps", geo_id+".json");
 			d3.json(file, function(err, dat){
 				if(!!err){
 					callback(null);
@@ -172,9 +168,7 @@ export default function puma_maps(container){
 					callback(dat);
 				}
 			});
-			//console.log("geo NOT in repo");
 		}
-		//var file = "build/data/shapefiles/subsetted/geojson/"+id;		
 	}
 
 	//the main draw function
@@ -204,7 +198,6 @@ export default function puma_maps(container){
 			}
 			else{
 				wrap.style("visibility","visible").style("height","auto");
-				//map_title.style("visibility","visible");
 				draw(group, rect_data_, topo);
 
 			}
@@ -212,10 +205,6 @@ export default function puma_maps(container){
 
 		get_topo(id, async_callback);
 	}
-
-
-
-
 
 	//draw function return
 	return do_all;

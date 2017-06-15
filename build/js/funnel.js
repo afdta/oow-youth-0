@@ -125,18 +125,12 @@ export default function funnel(container){
 							var share =  100*(d[0][1] - d[0][0])/tot;
 							return share+"%";
 						})
-						/*.attr("y", function(d, i){
-							return !!keys2[i].bump ? "0px" : "10px"
-						})*/
 
 					//if not bumped, transition color now
 					t1.filter(function(d,i){return !keys2[i].bump})
 						.attr("fill", function(d,i){
 							return colors2[i]}
 						)
-						/*.attr("stroke", function(d,i){
-							return colors2[i]}
-						)*/
 
 				var t2 = t1.transition()
 						.duration(2000)
