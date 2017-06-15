@@ -5,9 +5,13 @@ import bar_charts from './bar_charts.js';
 export default function supercluster_profiles(container){
 
 	var supercluster_profile_data = cluster_data.super;
+	console.log(supercluster_profile_data);
 
+	var order = {"3":1, "1":2, "2":3, "5":4, "4":5, "7":6, "6":7}
 	supercluster_profile_data.sort(function(a,b){
-		return a.superclus2 - b.superclus2;
+		var aval = order[a.superclus2+""];
+		var bval = order[b.superclus2+""];
+		return aval - bval;
 	});
 
 	var tot_oow = d3.sum(supercluster_profile_data, function(d){return d.count});
@@ -70,7 +74,7 @@ export default function supercluster_profiles(container){
 						  .style("width","100%")
 						  .classed("makesans c-fix",true);
 
-		var bar_chart_wrap = content.append("div").style("float","left");
+		var bar_chart_wrap = content.append("div").style("float","left").style("margin-top","2em");
 
 		bar_charts(d, bar_chart_wrap, COLOR);
 
@@ -93,21 +97,20 @@ export default function supercluster_profiles(container){
 						.style("padding","1em 0em 0.25em 0em")
 						.style("font-weight","bold");
 
-		var profile1 = meet.append("div").classed("avatar-profile c-fix",true).style("margin-right","5%");
+		var profile1 = meet.append("div").classed("avatar-profile c-fix",true).style("margin-right","10%");
 		var avatar1 = profile1.append("div").classed("avatar",true).append("img")
 								.attr("src", "./build/wireframes/avatar1.png")
 								.attr("alt", "Avatar image")
 								;
-			profile1.append("div").classed("avatar-text reading",true)
-								  .append("p")
+			profile1.append("p").classed("avatar-text",true)
 								  .text("Avatar1 is ... [Description here...] Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin blandit malesuada erat, eu scelerisque orci aliquet sagittis. Vivamus iaculis, risus at finibus commodo, lorem leo suscipit ligula, eget vestibulum turpis lectus a arcu. Pellentesque elementum ex vitae risus maximus maximus eu sit amet mauris.")
 
-		var profile2 = meet.append("div").classed("avatar-profile c-fix",true).style("margin-left","5%");
+		var profile2 = meet.append("div").classed("avatar-profile c-fix",true);
 		var avatar2 = profile2.append("div").classed("avatar",true).append("img")
 								.attr("src", "./build/wireframes/avatar2.png")
 								.attr("alt", "Avatar image")
 								;
-			profile2.append("div").classed("avatar-text reading",true)
+			profile2.append("div").classed("avatar-text",true)
 								  .append("p")
 								  .text("Avatar2 is ... [Description here...] Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin blandit malesuada erat, eu scelerisque orci aliquet sagittis. Vivamus iaculis, risus at finibus commodo, lorem leo suscipit ligula, eget vestibulum turpis lectus a arcu. Pellentesque elementum ex vitae risus maximus maximus eu sit amet mauris.")
 

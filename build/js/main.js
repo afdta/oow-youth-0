@@ -4,12 +4,6 @@
 //shared js-modules
 import dir from '../../../js-modules/rackspace.js';
 
-//unused
-import card from '../../../js-modules/card-api.js';
-import nameshort from '../../../js-modules/nameshort.js';
-import met_map from '../../../js-modules/met-map.js';
-import format from '../../../js-modules/formats.js';
-
 //out of work modules
 import funnel from './funnel.js';
 import scroll_show from './scroll-show.js';
@@ -30,16 +24,16 @@ function main(){
 	interventions().grid(document.getElementById("interventions-grid"));
 
 	//build out header
-	var mhead = header()
-			.parent(document.getElementById("out-of-work"))
-			.height(140, 70)
-			.build(document.getElementById("oow-header"));
+	//var mhead = header()
+	//		.parent(document.getElementById("out-of-work"))
+	//		.height(140, 70)
+	//		.build(document.getElementById("oow-header"));
 
-	var header_content = mhead.content
-							.append("div")
-							.style("padding", "5px 0em 0px 0em")
-							.classed("c-fix",true)
-							.html('<p style="text-align:center">Navigation menu / jurisdiction selection</p><p style="text-align:center">[Jump to: <a href="#view2-wrap">1) groups</a>, <a href="#view3-wrap">2) jurisdiction data</a> | Navigation will afix to the bottom of screen]</p>');
+	//var header_content = mhead.content
+	//						.append("div")
+	//						.style("padding", "5px 0em 0px 0em")
+	//						.classed("c-fix",true)
+	//						.html('<p style="text-align:center">Navigation menu / jurisdiction selection</p><p style="text-align:center">[Jump to: <a href="#view2-wrap">1) groups</a>, <a href="#view3-wrap">2) jurisdiction data</a> | Navigation will afix to the bottom of screen]</p>');
 
 	//var selects = header_content.append("div").style("float","right").classed("c-fix",true);
 

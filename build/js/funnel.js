@@ -7,17 +7,17 @@ export default function funnel(container){
 	//[{label: string, num: number, col: string}]
 
 	var values = [{
-				unemp_oow: 4.5,
-				unemp_other: 0.5,
-				nilf_oow: 9.2,
-				nilf_other: 13.8,
-				emp: 72
+				unemp_oow: 3.6,
+				unemp_other: 0.4,
+				nilf_oow: 7.614,
+				nilf_other: 8.586,
+				emp: 58.7
 			 }];
 
 	var keys_all = ["unemp_oow", "unemp_other", "nilf_oow", "nilf_other", "emp"];
-	var cols = ["#dc2a2a", "#ff6464", "#0d73d6"];
+	var cols = ["#dc2a2a", "#ff6464", "#65a4e5"];
 
-	cols[2] = "#65a4e5";
+	var cols = ['#fc8d62','#a6d854','#65a4e5','#e5c494'];
 
 	var clips = 0;
 
@@ -39,7 +39,7 @@ export default function funnel(container){
 		var svg_wrap = slide.append("div")
 							.classed("left60",true);
 
-		var svg = svg_wrap.append("svg").attr("width","100%").attr("height","50px");
+		var svg = svg_wrap.append("svg").attr("width","100%").attr("height","60px");
 
 		var rects = svg.append("g");
 
@@ -49,7 +49,7 @@ export default function funnel(container){
 						.attr("id", clipid)
 						.append("rect")
 						.attr("width","100%")
-						.attr("height","35px")
+						.attr("height","40px")
 						.attr("y","10")
 						.attr("rx","13")
 						.attr("ry","13")
@@ -83,7 +83,7 @@ export default function funnel(container){
 							 	return colors1[i]}
 							 )
 							 .attr("stroke-width","1px")
-							 .attr("height","35px")
+							 .attr("height","40px")
 							 .attr("width", function(d){
 							 	var share =  100*(d[0][1] - d[0][0])/tot;
 							 	return share+"%";
@@ -162,7 +162,7 @@ export default function funnel(container){
 				marker.classed("active",true);
 				slide.transition().duration(500).style("opacity",1);	
 			}
-			waypoint(svg_wrap.node()).buffer(-1, 0.7).activate(activate);		
+			waypoint(slide.node()).buffer(-1, 0.8).activate(activate);		
 		}
 		else{
 			text_wrap.transition().duration(500).style("opacity",1);
@@ -171,13 +171,13 @@ export default function funnel(container){
 		} 		
 	}
 
-	add_layer('In the United States, there are XX million people between the ages of 25 and 64 who are not living in group quarters or institutionalized. The bar above represents this entire group.',
+	add_layer('In the 130 study jurisdictions, there are 78.9 million people between the ages of 25 and 64 who are non-institutionalized civilians. This bar represents that entire group.',
 			  null,
 			  [{key:"unemp_oow", col:2}, {key:"unemp_other", col:2}, {key:"nilf_oow", col:2}, 
 			   {key:"nilf_other", col:2}, {key:"emp", col:2}]
 			  )
 
-	add_layer('Of this XX million, YY million are <span class="red-text">unemployed</span>—people who do not have a job, are available for work, and have actively looked for work in the last four weeks.',
+	add_layer('Of this 78.9 million, 4 million are <span class="unemployed-text">unemployed</span>—people who do not have a job, are available for work, and have actively looked for work in the last four weeks.',
 		  null,
 		  [{key:"unemp_oow", col:2}, {key:"unemp_other", col:2}, {key:"nilf_oow", col:2}, 
 		   {key:"nilf_other", col:2}, {key:"emp", col:2}],
@@ -185,7 +185,7 @@ export default function funnel(container){
 		   {key:"nilf_other", col:2}, {key:"emp", col:2}]
 		 )
 
-	add_layer('An additional ZZ million are considered <span class="pink-text">not in the labor force</span>—people who are neither working nor looking for work. This is a heterogenous group with different reasons for not entering the labor force, not all of which are readily observable. Individuals may be devoting time and energy towards other activities such as raising children, taking care of other family members, or going to school. They may be retired or have disabilities that preclude employment. They may be interested in working, but because they have not searched for a job in the past four weeks, they are not counted among the unemployed.',
+	add_layer('An additional 16.2 million are considered <span class="nilf-text">not in the labor force</span>—people who are neither working nor looking for work. This is a heterogeneous group with different reasons for not entering the labor force, not all of which are readily observable. Individuals may be devoting time and energy towards other activities such as raising children, taking care of other family members, or going to school. They may be retired or have disabilities that preclude employment. They may be interested in working, but because they have not searched for a job in the past four weeks, they are not counted among the unemployed.',
 		  null,
 		  [{key:"unemp_oow", col:0}, {key:"unemp_other", col:0}, {key:"nilf_oow", col:2}, 
 		   {key:"nilf_other", col:2}, {key:"emp", col:2}],
@@ -193,27 +193,19 @@ export default function funnel(container){
 		   {key:"nilf_other", col:1}, {key:"emp", col:2}]
 		 )
 
-	add_layer('Of the <span class="red-text">unemployed</span>, we subtracted people receiving retirement and disability benefits and students living in group quarters (primarily college dormitories). This amounts to X, or x% of the unemployed.',
+	add_layer('Of the combined unemployed and not-in-the-labor-force populations—all people who are not presently working—we subtracted people receiving retirement and disability benefits, most students, and our best estimate of people who choose to be stay-at-home parents with sufficient earnings from a spouse who works. These subtractions amount to 10 percent of the unemployed and 53 percent of those not in the labor force.',
 		  null,
 		  [{key:"unemp_oow", col:0}, {key:"unemp_other", col:0}, {key:"nilf_oow", col:1}, 
 		   {key:"nilf_other", col:1}, {key:"emp", col:2}],
 		  [{key:"unemp_oow", col:0}, {key:"nilf_oow", col:1}, 
-		   {key:"nilf_other", col:1}, {key:"unemp_other", col:2, bump:true}, {key:"emp", col:2}]
+		   {key:"emp", col:2}, {key:"unemp_other", col:2, bump:true}, {key:"nilf_other", col:2, bump:true}]
 		 )
 
-	add_layer('Finally, of those <span class="pink-text">not in the labor force</span>, we subtracted all students, people receiving retirement and disability benefits, and our estimate of people who choose to be stay-at-home parents with sufficient earnings from a spouse who works. This amounts to Y people, or y% of those not in the labor force.',
-		  null,
-		  [{key:"unemp_oow", col:0}, {key:"nilf_oow", col:1}, 
-		   {key:"nilf_other", col:1}, {key:"unemp_other", col:2, bump:true}, {key:"emp", col:2}],
-		  [{key:"unemp_oow", col:0}, {key:"nilf_oow", col:1}, 
-		   {key:"unemp_other", col:2}, {key:"emp", col:2}, {key:"nilf_other", col:2, bump:true}]
-		 )
-
-	add_layer('This leaves O individuals defined as <span class="red-text">out of work</span> (o% of the 25 to 64 year old population.) [Need a new color for out of work]',
+	add_layer('This leaves 11.3 million individuals defined as <span class="oow-text">out-of-work</span> (14 percent of the 25–64 year-old non-institutionalized civilian population.)',
 	  null,
 	  [{key:"unemp_oow", col:0}, {key:"nilf_oow", col:1}, 
 	   {key:"unemp_other", col:2}, {key:"emp", col:2}, {key:"nilf_other", col:2}],
-	  [{key:"unemp_oow", col:0}, {key:"nilf_oow", col:0}, 
+	  [{key:"unemp_oow", col:3}, {key:"nilf_oow", col:3}, 
 	   {key:"unemp_other", col:2}, {key:"emp", col:2}, {key:"nilf_other", col:2}]
 	 )
 }

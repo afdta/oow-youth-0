@@ -1,12 +1,22 @@
-export default function bar_charts(input_datarray, wrap, col){
+import dimensions from '../../../js-modules/dimensions.js';
+import format from '../../../js-modules/formats.js';
+
+export default function bar_charts(input_datarray, outer_wrap, col){
 	var color = arguments.length > 2 ? col : "#444444";
-	wrap.selectAll("div").remove();
 
-	var chartWrap1 = wrap.append("div").style("float", "left").style("margin","2em 2em 0em 0em");
-	var chartWrap2 = wrap.append("div").style("float", "left").style("margin","2em 2em 0em 0em");
+	outer_wrap.select("div").remove();
 
+	var wrap = outer_wrap.append("div").classed("c-fix",true).style("margin","0em 0em");
+
+	//var chart_width = dimensions().width < 1024 ? 280 : 340;
+
+	var chartWrap1 = wrap.append("div").style("float", "left").style("width","48%").style("min-width","250px").style("margin-right","4%");
+	var chartWrap2 = wrap.append("div").style("float", "left").style("width","48%").style("min-width","250px");
+
+	//datarray will always be an array of length 1
 	var datarray_ = [].concat(input_datarray);
 	//datarray: an array of data objects
+	//console.log(datarray_);
 
 	var data_stacker = function(keys, labels){
 		var datarray = datarray_.slice(0);
@@ -24,11 +34,15 @@ export default function bar_charts(input_datarray, wrap, col){
 			return obs;
 		});
 
+		//console.log(wrought);
+
 		var countKeys = d3.range(0, datarray.length).map(function(d){return "count"+d});
 
 		var stacked = d3.stack().keys(countKeys)(wrought);
 
-		var scale = d3.scaleLinear().domain([0,tot]).range([0,0.9]);
+		//console.log(stacked);
+
+		var scale = d3.scaleLinear().domain([0,tot]).range([0,0.8]);
 
 		return {raw: wrought, stacked:stacked, total:tot, scale:scale, nbars:keys.length, binary:false, labels:labels};
 	}
@@ -39,9 +53,12 @@ export default function bar_charts(input_datarray, wrap, col){
 		var datarray = datarray_.slice(0);
 		var tot = d3.sum(datarray, function(d){return d.count});
 		var map1 = datarray.map(function(d,i){
+			//in the current version, there will only be one group represented
 			var group = {id:"count"+i};
 			group.yes = d[key]*d.count;
+			group.yes_share = d[key];
 			group.no = (1-d[key])*d.count;
+			group.no_share = (1-d[key]);
 			return group;
 		});
 
@@ -51,15 +68,22 @@ export default function bar_charts(input_datarray, wrap, col){
 			//[yes, no]
 			var new_yes_top = cumulative.yes+d.yes;
 			var new_no_top = cumulative.no+d.no;
-			var group = [[cumulative.yes, new_yes_top],
-						 [cumulative.no, new_no_top]];
+			var Y = [cumulative.yes, new_yes_top];
+			var N = [cumulative.no, new_no_top];
+				Y.data = d;
+				Y.isyes = true;
+				N.data = d;
+				N.isyes = false;
+			var group = [Y,N];
 			cumulative.yes = new_yes_top;
 			cumulative.no = new_no_top;
 			group.id = d.id;
 			return group;
 		});
 
-		var scale = d3.scaleLinear().domain([0,tot]).range([0,0.9]);
+		//console.log(map2);
+
+		var scale = d3.scaleLinear().domain([0,tot]).range([0,0.8]);
 
 		return {raw:map1, stacked:map2, total:tot, scale:scale, nbars:1, binary:true, labels:null};
 	}
@@ -75,11 +99,17 @@ export default function bar_charts(input_datarray, wrap, col){
 						.style("border-bottom","1px dotted " + color)
 						//.style("font-weight","bold");
 		
-		var outer_svg = wrap.append("svg").style("overflow","visible");
+		var outer_svg = wrap.append("div").style("margin-left",data.labels==null ? "10px" : "0px").append("svg").style("overflow","visible");
 		var svg = outer_svg.append("svg").style("overflow","visible");
 		var labels = outer_svg.append("g");
-		var yaxis = labels.append("line").attr("x1","0")
-										 .attr("x2","0")
+		var anno = svg.append("g");
+		
+		//var w = chart_width-20;
+		var label_width = 100;
+		var label_pos = 35;
+
+		var yaxis = labels.append("line").attr("x1",label_pos+"%")
+										 .attr("x2",label_pos+"%")
 										 .attr("y1","0%")
 										 .attr("y2","100%")
 										 .attr("stroke","#555555")
@@ -88,8 +118,7 @@ export default function bar_charts(input_datarray, wrap, col){
 		
 		var bar_height = 15;
 		var pad = 5;
-		var w = 320;
-		var label_width = 100;
+
 		var h = data.nbars*bar_height + data.nbars + (2*pad);
 		
 		if(data.labels !== null){
@@ -99,28 +128,33 @@ export default function bar_charts(input_datarray, wrap, col){
 
 			l1.text(function(d){return d})
 				.attr("text-anchor","end")
-				.attr("x","0")
+				.attr("x",label_pos+"%")
 				.attr("y", function(d,i){
 					return pad+(i*(bar_height+1))
 				})
 				.attr("dx","-5px")
-				.attr("dy",12)
+				.attr("dy",13)
 				.text(function(d){
 					return d;
 				})
 				.style("fill","#555555")
 				.style("font-size","15px")
 				;
-			labels.attr("transform","translate("+label_width+",0)");
+			//labels.attr("transform","translate("+label_width+",0)");
 			yaxis.style("visibility","visible");
 		}		
 
-		outer_svg.attr("width",w+"px").attr("height",h+"px")
+		//outer_svg.attr("width",chart_width+"px").attr("height",h+"px")
+		outer_svg.attr("width","100%").attr("height",h+"px");
+
 		svg.attr("height","100%")
-		   .attr("width", data.labels !== null ? (w-label_width)+"px" : w+"px")
-		   .attr("x", data.labels !== null ? label_width+"px" : "0px")
+		   //.attr("width", data.labels !== null ? (w-label_width)+"px" : w+"px")
+		   //.attr("x", data.labels !== null ? label_width+"px" : "10px")
+		   .attr("width", data.labels !== null ? (100-label_pos)+"%" : "100%")
+		   .attr("x", data.labels !== null ? label_pos+"%" : "0%")
 		   ;
 
+		//groups are clusters / subgroups (only 1 in this version of graphic -- not stacked)
 		var groups0 = svg.selectAll("g.group").data(data.stacked);
 			groups0.exit().remove();
 		var groups = groups0.enter()
@@ -141,11 +175,45 @@ export default function bar_charts(input_datarray, wrap, col){
 						  .attr("fill", color)
 						  .attr("fill-opacity", function(d,i){
 						  	//if it's a binary stack, the second obs in each group is the "no" (1-"yes")
-						  	return data.binary && i==1 ? 0.35 : 1;
+						  	return data.binary && i==1 ? 0.2 : 1;
 						  })
 						  .attr("stroke", "#ffffff")
 						  .style("shape-rendering","crispEdges")
 						  ;
+
+		var t0 = anno.selectAll("g.group").data(data.stacked);
+			t0.exit().remove();
+		var tg = t0.enter().append("g")
+							.classed("group",true)
+							.merge(t0)
+							;
+
+		var txt0 = tg.selectAll("text").data(function(d){return d});
+			txt0.exit().remove();
+		var txts = txt0.enter()
+						  .append("text")
+						  .merge(txt0)
+						  .attr("x", function(d){return (100*data.scale(d[1]))+"%" })
+						  .attr("y", function(d,i){return data.binary ? pad : pad+(i*(bar_height+1))})
+						  .attr("dy","13")
+						  .attr("dx","3")
+						  .style("font-size","15px")
+						  .style("fill","#555555")
+						  .attr("fill-opacity", function(d,i){
+						  	//if it's a binary stack, the second obs in each group is the "no" (1-"yes")
+						  	return data.binary && i==1 ? 0.35 : 1;
+						  })
+						  .text(function(d){
+						  	if(data.binary){
+						  		return d.isyes ? format.sh1(d.data.yes_share) : "";
+						  	}
+						  	else{
+						  		return d.data.share0 > 0 && d.data.share0 < 1 ? format.sh1(d.data.share0) : format.sh0(d.data.share0);
+						  	}
+						  	
+						  })
+						  ;
+
 	}
 
 	var age_data = data_stacker(["a2534","a3544","a4554","a5564"], ["25–34","35–44","45–44","55–64"]);
@@ -164,9 +232,9 @@ export default function bar_charts(input_datarray, wrap, col){
 	chartWidget("Race", race_data, chartWrap1);	
 
 	chartWidget("Male share", sex_data, chartWrap2);
-	chartWidget("Disability status", disability_data, chartWrap2);
+	chartWidget("Has a disability", disability_data, chartWrap2);
 	chartWidget("Limited English proficiency (LEP)", lep_data, chartWrap2);
-	chartWidget("Is caring for children", children_data, chartWrap2);
+	chartWidget("Caring for children", children_data, chartWrap2);
 	chartWidget("Looking for work", looking_data, chartWrap2);
 
 

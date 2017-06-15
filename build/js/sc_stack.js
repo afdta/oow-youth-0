@@ -2,11 +2,11 @@ import format from '../../../js-modules/formats.js';
 
 export default function sc_stack(){
 	//color credit: colorbrewer2.org
-	var colors = ['#666666','#0d73d6','#65a4e5','#a6d854','#66c2a5','#fc8d62','#ffd92f','#e5c494'];
+	var colors = ['#666666','#65a4e5','#a6d854','#0d73d6','#fc8d62','#66c2a5','#e5c494','#ffd92f'];
 
 	var titles = [
 		"Total out-of-work population",
-		"Less educated prime-age people",
+		"Less-educated prime-age people",
 		"Diverse, less educated, and eyeing retirement",
 		"Young, less-educated, and diverse",
 		"Moderately educated older people",
@@ -49,7 +49,13 @@ export default function sc_stack(){
 
 		var rectsG0 = svg.selectAll("g.rect-g").data(rect_data, function(d){return d.mergeid});
 			rectsG0.exit().transition().duration(1000).style("opacity","0").on("end", function(){d3.select(this).remove()});
-		var rectsG = rectsG0.enter().append("g").classed("rect-g",true).merge(rectsG0).style("pointer-events","all");
+		var rectsGE = rectsG0.enter().append("g").classed("rect-g",true);
+			rectsGE.append("title");
+		var rectsG = rectsGE.merge(rectsG0).style("pointer-events","all");
+
+		rectsG.select("title").text(function(d){
+			return sc.title(d.id);
+		});
 
 		var rects0 = rectsG.selectAll("rect").data(function(d){return [d,d]});
 			rects0.exit().remove();
@@ -132,12 +138,13 @@ export default function sc_stack(){
 
 		var text_num_fixed = false;
 		if(arguments.length > 2 && typeof rect_callback == "function"){
-			var selected_superclus = null;
-			var selected_group = null;
+			var selected_superclus = "ALL";
+			var selected_group = "ALL";
 			rectsG.on("mousedown", function(d,i){
 				if(d.id === selected_superclus && d.group === selected_group){
-					selected_superclus = null;
-					selected_group = null;
+					//reset to no selection
+					selected_superclus = "ALL";
+					selected_group = "ALL";
 				}
 				else{
 					selected_superclus = d.id;
@@ -161,7 +168,7 @@ export default function sc_stack(){
 				//		return d3.color(sc.color(d.id)).darker();
 				//	}).raise();
 				//}
-				rect_callback(selected_superclus, selected_group, d);
+				rect_callback(selected_group, selected_superclus, d);
 			}).style("cursor","pointer");
 		}
 

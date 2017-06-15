@@ -1,5 +1,6 @@
 library("jsonlite")
 library("tidyr")
+library("dplyr")
 setwd("/home/alec/Projects/Brookings/out-of-work/build/data")
 
 keep <- c("FIPS_final", "sample", 
@@ -20,6 +21,12 @@ distribution <- read.csv("supercluster distribution by geo.csv", stringsAsFactor
                 separate(superclus, c("level","superclus2"), "_pct", convert=TRUE)
 
 topline <- read.csv("topline descriptive statistics 25-64.csv", stringsAsFactors = FALSE)    #[c("POP",keep)]
+
+sumsum <- function(d){
+  return(data.frame(sum=sum(d$count, na.rm=TRUE), n=nrow(d)))
+}
+
+all %>% filter(group != 'ALL') %>% group_by(FIPS_final, Name_final) %>% do(sumsum(.))
 
 #fix FIPS for aggregate geos
 prev_fips <- all$FIPS_final
