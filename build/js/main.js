@@ -20,7 +20,7 @@ function main(){
 
 	//production data
 	//dir.add("avatars", "out-of-work/data/avatars");
-	//dir.add("maps", "outof-work/data/maps");
+	//dir.add("maps", "out-of-work/data/maps");
 
 	funnel(document.getElementById("view0-wrap"));
 	supercluster_profiles(document.getElementById("view2-wrap"));
