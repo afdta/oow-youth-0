@@ -24,8 +24,18 @@
   margin:0em 0em 1em 0em;
 }
 
-.metro-interactive p, .metro-interactive a, .metro-interactive li, .metro-interactive text{
+.metro-interactive p, .metro-interactive a, .metro-interactive li, .metro-interactive text, .metro-interactive select{
   font-size:16px;
+}
+
+.metro-interactive a{
+  border-bottom: 1px dotted #dc2a2a;
+  color: #dc2a2a;
+  text-decoration:none;
+}
+
+.metro-interactive a:hover{
+  border-bottom: 1px solid #dc2a2a;
 }
 
 text{
@@ -102,11 +112,28 @@ div.floated-map{
   max-width:480px;
   width:45%;
   margin:1em 0em 2em 2em;
+  position:relative;
 }
 
 div.floated-map a{
   display:block;
   width:100%;
+  border:none;
+}
+
+div.floated-map p{
+  font-style:italic;
+  margin:0em;
+  position:absolute;
+  right:10px;
+  bottom:10px;
+
+  pointer-events:none;
+  user-select:none;
+}
+
+div.floated-map a:hover{
+  border:none;
 }
 
 div.floated-map img{
@@ -471,7 +498,7 @@ div.topline-bar-charts, div.puma-map-wrap{
   div.floated-map{
     float:none;
     min-width:320px;
-    max-width:auto;
+    max-width:none;
     width:auto;
     margin:1em 0em 1em;
   }
