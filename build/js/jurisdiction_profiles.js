@@ -6,6 +6,7 @@ import puma_maps from './puma_maps.js';
 import topline from './topline.js';
 import interventions from './interventions.js';
 
+
 export default function jurisdiction_profiles(container){
 	var sc_stacker = sc_stack();
 	
@@ -38,33 +39,61 @@ export default function jurisdiction_profiles(container){
 	})();
 	
 	//DOM STRUCTURE---------------
-		var outer_wrap = d3.select(container).classed("makesans c-fix", true).style("margin-top","2em");
+		var outer_wrap = d3.select(container).classed("makesans c-fix", true).style("margin-top","0em").style("padding-top","1px");
+
+		var top_bar = outer_wrap.append("div").classed("c-fix",true);
+
+		//select menu
+		var select_outer_wrap = top_bar.append("div")
+									.style("padding","0.25em 0.25em 0.75em 0.25em")
+									.style("margin","0em 0em 0em 0em")
+									.style("float","right")
+									.style("height","4em")
+									.style("display","table");
+
+		var select_inner_wrap = select_outer_wrap.append("div")
+									.style("display","table-cell")
+									.style("vertical-align","bottom")
+									;
+
+			select_inner_wrap.append("p")
+							 .style("font-style","italic")
+							 .text("Select a jurisdiction")
+							 .style("margin","0em 0em 0.3em 0.5em")
+							;	
+
+		var select_wrap = select_inner_wrap.append("div")
+									.style("border","1px solid #bbbbbb")
+									.style("border-radius","10px")
+									.style("background-color","#e0e0e0")
+									;	
 		
 		
 		//title above ribbon
-		var title_wrap = outer_wrap.append("div").classed("c-fix",true).style("display","table").style("width","100%");
+		var title_wrap = top_bar.append("div").classed("c-fix",true)
+								.style("float","left")
+								.style("height","4em")
+								.style("display","table")
+								;
 
-		var top_title = title_wrap.append("p").style("display","table-cell")
-			.style("padding","0em 2em 0.5em 10px")
-			.style("line-height","1.25em")
-			.style("vertical-align","bottom");
+		var top_title = title_wrap.append("p")
+			.style("padding","0em 2em 0.25em 10px")
+			.style("margin","0em")
+			.style("line-height","1.4em")
+			.style("display","table-cell")
+			.style("vertical-align","bottom")
+			;
 
 		var place_title = top_title.append("span").classed("font1x",true).style("font-weight","bold")
 					 				.text("Distribution of major out-of-work groups in ").append("span");
 			
-			top_title.append("span").text(" | ");
-			top_title.append("span").html("<em>Select a segment to view underlying data</em>").style("white-space","nowrap")
+			top_title.append("span").html("</br >");
+
+		var segment_title = top_title.append("span").html("Select a segment to view underlying data")
+								.style("white-space","nowrap")
+								.style("font-style","italic")
+								;
 		
-		//select menu
-		var select_wrap = title_wrap.append("div")
-									.style("display","table-cell")
-									.style("vertical-align","bottom")
-									.style("padding-bottom", "0.75em")
-									.append("div")
-									.style("padding","0.25em 0.25em 0em 0.25em")
-									.style("border-bottom","1px solid #aaaaaa")
-									.style("float","right")
-									;
 
 		var select = select_wrap.append("select").style("width","100%");
 		var options = select.selectAll("option").data(options_data)
@@ -133,7 +162,7 @@ export default function jurisdiction_profiles(container){
 
 		//rect_data should look like: [{count:x, share:count/total, id:superclus2}]
 		//the data in rect_data0 will be nested when there are multiple groups within a supercluster
-		var rect_data0 = [1,2,3,4,5,6,7].map(function(d){
+		var rect_data0 = [3,1,2,5,4,7,6].map(function(d){
 			if(dat.hasOwnProperty(d+"")){
 				var R = dat[d+""].map(function(dd){
 					var obs = {};
@@ -172,6 +201,7 @@ export default function jurisdiction_profiles(container){
 			if(superclus2=="ALL" || superclus2==null){
 				var D = oow;
 				draw_topline.all(format.num0(tot), format.sh1(share));
+				segment_title.html("Select a segment to view underlying data").interrupt().transition().duration(0).style("color","#111111");
 			}
 			else{
 				var i=-1;
@@ -183,6 +213,8 @@ export default function jurisdiction_profiles(container){
 					}
 				}
 				draw_topline.group(D, superclus2, color);
+				segment_title.html("Select the segment again to reset the data")
+					.interrupt().transition().duration(100).style("color",color).transition().duration(800).style("color","#111111");
 			}
 			//console.log(D);
 
@@ -200,7 +232,9 @@ export default function jurisdiction_profiles(container){
 		draw_bar_charts(oow, sc_stacker.title("ALL") + " in " + place, null, sc_stacker.color("ALL"));
 		
 		//args: geoid, group, superclus
-		draw_puma_maps(id, "ALL", "ALL", rect_data);		
+		draw_puma_maps(id, "ALL", "ALL", rect_data);	
+
+		segment_title.html("Select a segment to view underlying data").interrupt().transition().duration(0).style("color","#111111");	
 		
 	}
 

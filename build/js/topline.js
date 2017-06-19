@@ -48,10 +48,10 @@ export default function topline(container, cluster_data){
 		
 		//var tile_wrap2 = wrap.append("div").classed("basic-tile-row c-fix",true);
 		var tile2 = tile_wrap1.append("div").classed("basic-tile",true);
-			tile2.append("p").text("Out of work share*")
+			tile2.append("p").text("Out-of-work share*")
 		var tile2row2 = tile2.append("div").classed("c-fix", true);
 		var share_out_of_work = tile2row2.append("p").classed("big-stat",true).style("float","left").text(share);
-			tile2.append("p").classed("small-note",true).text("*Of the 25–64 year old civilian, non-insitutionalized population.")
+			tile2.append("p").classed("small-note",true).text("*Of the 25–64 year-old civilian, non-institutionalized population.")
 
 
 		var share_distro = tile2row2.append("div")

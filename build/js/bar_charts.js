@@ -203,7 +203,7 @@ export default function bar_charts(input_datarray, outer_wrap, col){
 	}
 
 	var age_data = data_stacker(["a2534","a3544","a4554","a5564"], ["25–34","35–44","45–54","55–64"]);
-	var edu_data = data_stacker(["lths","hs","sc","aa","baplus"],["<HS","HS","Some college","Associate's","BA+"]);
+	var edu_data = data_stacker(["lths","hs","sc","aa","baplus"],["<HS","HS","Some college","Associate","BA+"]);
 	var race_data = data_stacker(["whiteNH","blackNH","latino","asianNH","otherNH"],
 								 ["White",  "Black",  "Latino","Asian",  "Other"]);
 

@@ -156,7 +156,7 @@ export default function funnel(container){
 				marker.classed("active",true);
 				slide.transition().duration(500).style("opacity",1);	
 			}
-			waypoint(slide.node()).buffer(-1, 0.8).activate(activate);		
+			waypoint(slide.node()).buffer(-1, 0.7).activate(activate);		
 		}
 		else{
 			text_wrap.transition().duration(500).style("opacity",1);
@@ -165,7 +165,7 @@ export default function funnel(container){
 		} 		
 	}
 
-	add_layer('In the 130 study jurisdictions, there are 78.9 million people between the ages of 25 and 64 who are non-institutionalized civilians. This bar represents that entire group.',
+	add_layer('In the 130 study jurisdictions, there are 78.9 million adults ages 25–64 who are civilians and not living in institutional settings such as correctional facilities. This bar represents that entire group.',
 			  null,
 			  [{key:"unemp_oow", col:2}, {key:"unemp_other", col:2}, {key:"nilf_oow", col:2}, 
 			   {key:"nilf_other", col:2}, {key:"emp", col:2}]
@@ -187,7 +187,7 @@ export default function funnel(container){
 		   {key:"nilf_other", col:1}, {key:"emp", col:2}]
 		 )
 
-	add_layer('Of the combined unemployed and not-in-the-labor-force populations—all people who are not presently working—we subtracted people receiving retirement and disability benefits, most students, and our best estimate of people who choose to be stay-at-home parents with sufficient earnings from a spouse who works. These subtractions amount to 10 percent of the unemployed and 53 percent of those not in the labor force.',
+	add_layer('Of the combined unemployed and not-in-the-labor-force populations, our goal is to identify those most likely to be interested in or benefit most from workforce development assistance. Therefore, we subtracted the following groups: people receiving retirement and disability benefits, most students, and our best estimate of people who choose to be stay-at-home parents with sufficient earnings from a spouse who works. These subtractions amount to 10 percent of the unemployed and 53 percent of those not in the labor force.',
 		  null,
 		  [{key:"unemp_oow", col:0}, {key:"unemp_other", col:0}, {key:"nilf_oow", col:1}, 
 		   {key:"nilf_other", col:1}, {key:"emp", col:2}],

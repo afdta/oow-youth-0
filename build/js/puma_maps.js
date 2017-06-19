@@ -14,25 +14,6 @@ export default function puma_maps(container){
 							.append("b")
 							.text("Geographic distribution of each major group");
 
-	//package data for each map slide
-	var obj = function(supercluster, group, title_override){
-		if(arguments.length == 1){
-			var group = null;
-		}
-
-		if(arguments.length > 2){
-			var title = title_override;
-		}
-		else{
-			var title = cluster_title(supercluster);
-		}
-
-		return {super:supercluster, 
-				group:group, 
-				color:cluster_color(supercluster), 
-				title:title}
-	}
-
 	var topo_repo = {};
 
 	//layout function
@@ -121,6 +102,7 @@ export default function puma_maps(container){
 			var filler = d3.interpolateLab("#ffffff", d3.color(d.color).darker(0.15));
 
 			var data_accessor = function(puma, max_val){
+				//should always be a grp variable
 				var indicator = !!d.group ? "grp"+d.group : "sc"+d.id;
 
 				var val = puma.properties[indicator];
@@ -193,7 +175,7 @@ export default function puma_maps(container){
 		//then callback is a no-op
 		var async_callback = function(topo){
 			if(id!==current_id || topo == null){
-				wrap.style("visibility","hidden").style("height","150px");
+				wrap.style("visibility", topo == null ? "hidden" : "visible");
 				return null; //no-op
 			}
 			else{

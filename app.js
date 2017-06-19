@@ -365,7 +365,7 @@ function funnel(container){
 				marker.classed("active",true);
 				slide.transition().duration(500).style("opacity",1);	
 			}
-			waypoint(slide.node()).buffer(-1, 0.8).activate(activate);		
+			waypoint(slide.node()).buffer(-1, 0.7).activate(activate);		
 		}
 		else{
 			text_wrap.transition().duration(500).style("opacity",1);
@@ -374,7 +374,7 @@ function funnel(container){
 		} 		
 	}
 
-	add_layer('In the 130 study jurisdictions, there are 78.9 million people between the ages of 25 and 64 who are non-institutionalized civilians. This bar represents that entire group.',
+	add_layer('In the 130 study jurisdictions, there are 78.9 million adults ages 25–64 who are civilians and not living in institutional settings such as correctional facilities. This bar represents that entire group.',
 			  null,
 			  [{key:"unemp_oow", col:2}, {key:"unemp_other", col:2}, {key:"nilf_oow", col:2}, 
 			   {key:"nilf_other", col:2}, {key:"emp", col:2}]
@@ -396,7 +396,7 @@ function funnel(container){
 		   {key:"nilf_other", col:1}, {key:"emp", col:2}]
 		 );
 
-	add_layer('Of the combined unemployed and not-in-the-labor-force populations—all people who are not presently working—we subtracted people receiving retirement and disability benefits, most students, and our best estimate of people who choose to be stay-at-home parents with sufficient earnings from a spouse who works. These subtractions amount to 10 percent of the unemployed and 53 percent of those not in the labor force.',
+	add_layer('Of the combined unemployed and not-in-the-labor-force populations, our goal is to identify those most likely to be interested in or benefit most from workforce development assistance. Therefore, we subtracted the following groups: people receiving retirement and disability benefits, most students, and our best estimate of people who choose to be stay-at-home parents with sufficient earnings from a spouse who works. These subtractions amount to 10 percent of the unemployed and 53 percent of those not in the labor force.',
 		  null,
 		  [{key:"unemp_oow", col:0}, {key:"unemp_other", col:0}, {key:"nilf_oow", col:1}, 
 		   {key:"nilf_other", col:1}, {key:"emp", col:2}],
@@ -922,7 +922,7 @@ function bar_charts(input_datarray, outer_wrap, col){
 	};
 
 	var age_data = data_stacker(["a2534","a3544","a4554","a5564"], ["25–34","35–44","45–54","55–64"]);
-	var edu_data = data_stacker(["lths","hs","sc","aa","baplus"],["<HS","HS","Some college","Associate's","BA+"]);
+	var edu_data = data_stacker(["lths","hs","sc","aa","baplus"],["<HS","HS","Some college","Associate","BA+"]);
 	var race_data = data_stacker(["whiteNH","blackNH","latino","asianNH","otherNH"],
 								 ["White",  "Black",  "Latino","Asian",  "Other"]);
 
@@ -1008,6 +1008,26 @@ function avatars(container, supercluster){
 
 }
 
+function add_hand_icons(container){
+	if(arguments.length > 0){
+		var spans = d3.select(container).selectAll('span.hand-icon');
+	}
+	else{
+		var spans = d3.selectAll('span.hand-icon');
+	}
+
+	var url = dir.url("avatars", "hand_icon.png");
+
+	var images = spans.selectAll("img").data([url]);
+		images.exit().remove();
+		images.enter().append("img").style("display","inline-block")
+									.style("width","2em")
+									.style("height","2em")
+									.style("vertical-align","middle")
+									.attr("src", url)
+									.attr("alt","pointer icon");
+}
+
 function interventions(){
 	var I = {};
 
@@ -1040,7 +1060,7 @@ function interventions(){
 		"ALL":{"JS":1},
 		"1":{"JS":1, "BP":1, "TJ":1, "SE":1, "SI":1, "2G":1, "AP":1},
 		"2":{"JS":1},
-		"3":{"JS":1, "BP":1, "TJ":1, "SE":1, "SI":1, "2G":1, "AP":1},
+		"3":{"JS":1, "BP":1, "TJ":1, "SE":1, "SI":1, "2G":1, "AP":1, "AS":1},
 		"4":{"JS":1},
 		"5":{"JS":1, "BP":1, "SI":1, "2G":1, "AP":1, "AS":1},
 		"6":{"JS":1},
@@ -1048,29 +1068,29 @@ function interventions(){
 	};
 
 	descriptions.short = {
-		BP:["<b>Bridge programs</b> prepare people with low academic skills for further education and training, sometimes in combination with occupational skills training"],
-		TJ:["<b>Transitional job programs</b> provide short-term subsidized employment and supportive services to people with limited work experience and barriers to employment, and help participants find unsubsidized jobs"],
-		SE:["<b>Social enterprises</b> are mission-driven business enterprises that hire people with limited work experience and barriers to employment to carry out the work of the business. The enterprise also provides supportive services to workers and helps them find other employment opportunities."],
+		BP:["<b>Bridge programs</b> prepare people with low academic skills for further education and training, sometimes in combination with occupational skills training."],
+		TJ:["<b>Transitional jobs programs</b> provide short-term subsidized employment and supportive services to people with limited work experience and barriers to employment, and help participants find unsubsidized jobs."],
+		SE:["<b>Social enterprises</b> are mission-driven businesses that hire people with limited work experience and barriers to employment to carry out the work of the business. The enterprise also provides supportive services to workers and helps them find other employment opportunities."],
 		JS:["<b>Job search assistance and counseling</b> is a central feature of the public workforce system’s American Job Centers and other employment programs. It consists of in-person and individualized assistance, including skill and interest assessments, career and training planning, case management and referrals, and help with resume preparation and interviewing skills."],
-		SI:["<b>Sector initiatives</b> identify employers’ skill and workforce needs in a given industry and region and develop recruiting, assessment, and training strategies to help employers find workers with right skills."],
+		SI:["<b>Sector initiatives</b> identify employers’ skill and workforce needs in a given industry and region and develop recruiting, assessment, and training strategies to help employers find workers with the right skills."],
 		"2G":["<b>Two-generation programs</b> link education, job training and career-building for low-income parents with early childhood education for their children, thus building human capital across generations."],
 		AP:["<b>Apprenticeships</b> combine paid employment with on-the-job training and related classroom instruction."],
-		AS:["<b>ASAP</b> (Accelerated Study in Associate Programs) was designed by the City University of New York to increase the graduation rate of low-income community college students seeking an associate’s degree. The program requires students to attend full-time and provides a range of academic, financial, and person supports."]
+		AS:["<b>ASAP</b> (Accelerated Study in Associate Programs) was designed by the City University of New York to increase the graduation rate of low-income community college students seeking an Associate degree. The program requires students to attend full-time and provides a range of academic, financial, and personal supports."]
 	};
 
 	descriptions.long = {
 		BP:['<b>Bridge programs</b>&nbsp;are for people who need additional academic preparation before enrolling in post-secondary education or job training.&nbsp;<a href="https://www2.ed.gov/about/offices/list/ovae/pi/cclo/brief-1-bridge-programs.pdf">Low literacy and math levels</a>&nbsp;prevent many adults from succeeding in job training or earning educational credentials, and bridge programs are&nbsp;<a href="http://www.air.org/sites/default/files/downloads/report/AIR_Changing_the_Odds_0.pdf">one response</a>&nbsp;to increase the completion rates of those in need of academic remediation.&nbsp;Some bridge programs focus on preparing for the GED and thus are designed expressly for people without high school diplomas, but others are open to high school graduates as well, depending on their skill levels. Bridge programs typically use a contextualized learning approach, in which students develop their academic skills in the context of occupational training or real-world scenarios such as career exploration.', '<a href="https://www.sbctc.edu/colleges-staff/programs-services/i-best/">I-BEST</a>&nbsp;and&nbsp;<a href="http://www.laguardia.edu/ACE/Programs/CCPI/BridgeProgram/">Bridge to College and Careers</a>&nbsp;are examples of bridge programs that have been evaluated, but there are many more, including those developed as part of multi-state initiatives such as&nbsp;<a href="http://www.jff.org/sites/default/files/publications/materials/BT_toolkit_June7.pdf">Breaking Through</a>,&nbsp;<a href="http://www.joycefdn.org/assets/images/joyceFnd_ShiftingGears3.0_update.pdf">Shifting Gears</a>, and&nbsp;<a href="http://www.jff.org/initiatives/accelerating-opportunity">Accelerating Opportunity</a>.'],
-		TJ:['<b>Transitional jobs programs&nbsp;</b>are for people with limited work experience who would otherwise struggle to find employment.&nbsp;<a href="https://www.mdrc.org/sites/default/files/LookingForwardMemo_SubsidizedEmployment.pdf">These programs</a>&nbsp;provide short-term subsidized employment<b>&nbsp;</b>and supportive services<b>&nbsp;</b>based on the theory that the best way to learn to work is by working. A number of programs are&nbsp;<a href="https://www.mdrc.org/publication/implementation-and-early-impacts-next-generation-subsidized-employment-programs">currently being evaluated</a>, building on the lessons of previous evaluations, which have been mixed. The&nbsp;<a href="https://ceoworks.org/">Center for Employment Opportunities</a>, which serves previously incarcerated people, was found to significantly&nbsp;<a href="http://www.mdrc.org/sites/default/files/full_451.pdf">reduce recidivism</a>, but it did not increase subsequent unsubsidized employment,&nbsp;<a href="https://www.mdrc.org/publication/should-government-subsidize-jobs-unemployed">nor did other recently evaluated programs.</a>&nbsp;Some researchers have suggested that in addition to testing new strategies to improve employment outcomes of transitional jobs participants,&nbsp;<a href="http://www.mdrc.org/publication/transitional-jobs">it may also be important</a>&nbsp;to consider other benefits related to community-building and civic engagement. Individuals could build on their&nbsp;<a href="http://www.buildingbetterprograms.org/wp-content/uploads/2016/04/persistent-nonworkers.pdf">roles as community members and parents</a>&nbsp;by engaging in constructive, stipend-paying activities such as participating in an afterschool safety patrol or maintaining a community garden.', 'More information on transitional jobs is available via the&nbsp;<a href="https://www.heartlandalliance.org/nationalinitiatives/our-initiatives/national-transitional-jobs/">National Transitional Jobs Network</a>&nbsp;anda&nbsp;<a href="https://www.law.georgetown.edu/academics/centers-institutes/poverty-inequality/current-projects/upload/GCPI-Subsidized-Employment-Paper-20160413.pdf">report reviewing their history and effectiveness</a>.'],
-		SE:['<b>Social enterprises&nbsp;</b>hire people with limited work experience who would otherwise struggle to find employment.&nbsp;<a href="https://socialenterprise.us/about/social-enterprise/">Social enterprises</a>combine the social mission of a nonprofit with the market-driven approach of a business, and while they can focus on any of a number of social issues, the programs featured here focus specifically on employment. They run businesses in fields such as food service, groundskeeping, and maintenance, and directly hire the people they are serving. In conjunction with employment, the organizations&nbsp;provide supportive services and help employees find other job opportunities when they are ready.&nbsp;The organizations develop a mutually reinforcing relationship between the business and social missions—the social mission of serving the unemployed would not be financially viable without the business revenue, and the enterprise relies on participants as its workforce. A&nbsp;<a href="https://www.mathematica-mpr.com/news/mathematica-jobs-study-explores-social-enterprises-redf">recent evaluation</a>&nbsp;of social enterprises in California found that they increased employment levels among participants.','Social enterprises have grown in popularity in recent years, with&nbsp;<a href="https://ssir.org/topics/category/social_enterprise">active discussions</a>&nbsp;about the challenges and opportunities of melding nonprofit and for-profit business models. They have a variety of investors and financing models, with one foundation,&nbsp;<a href="http://redf.org/">REDF</a>, that focuses solely on employment-focused social enterprises and has made several commitments to expand and&nbsp;<a href="http://redf.org/what-we-do/lead/">strengthen the field</a>.'],
-		JS:['<b>Job search assistance and counseling&nbsp;</b>refers broadly to services to help employers and job seekers connect more efficiently than they might otherwise. They reduce labor market frictions by providing job candidates with information about job opportunities, in-demand skills, and training options. These services are central to the network of federally supported&nbsp;<a href="https://www.careeronestop.org/LocalHelp/AmericanJobCenters/american-job-centers.aspx">American Job Centers</a>, and are also incorporated into many other workforce programs. More specifically, such services consist of skill and interest assessments, career and training planning, case management and referrals, help with resume preparation and interviewing skills, and information on various job openings and associated skill and education requirements. They can be provided by staff or be self-service via a resource room and online offerings, and can be individualized or provided in group settings such as workshops.','<a href="http://research.upjohn.org/cgi/viewcontent.cgi?article=1161&amp;context=up_bookchapters">Past research</a>&nbsp;supports the effectiveness of publicly supported job search assistance, as does a more&nbsp;<a href="https://www.mathematica-mpr.com/our-publications-and-findings/publications/providing-public-workforce-services-to-job-seekers-15-month-impact-findings-on-the-wia-adult?MPRSource=TCSide">recent evaluation</a>&nbsp;of staff-assisted and personalized assistance in American Job Centers.'],
-		SI:['<b>Sector initiatives&nbsp;</b>are partnerships among employers, educators, and other workforce stakeholders<b>&nbsp;</b>to identify and address the workforce needs of particular industries within a regional labor market. They have a “dual customer” approach, seeking to the meet the needs of both employers and workers. These partnerships identify employers’ skill and workforce needs, aggregate employer interest and demand, and develop recruiting, assessment, and training strategies to help employers find workers with right skills. They reduce the inefficiencies of one-by-one engagements in which training organizations seek to meet the job placement and training needs of individual employers. The organization operating the sector strategy (often a training organization, consortium of employers, or local workforce investment board) develops expertise about a given industry’s occupational skill requirements, business practices, markets, and other factors that affect employers’ hiring and training needs.','A growing body of research supports their effectiveness (see&nbsp;<a href="http://www.aspenwsi.org/resource/ppvtuning-local-labor-market/">here</a>,&nbsp;<a href="http://www.mdrc.org/publication/encouraging-evidence-sector-focused-advancement-strategy-0">here</a>, and&nbsp;<a href="http://economicmobilitycorp.org/index.php?page=81">here</a>). The field is maturing, as evidenced by a&nbsp;<a href="https://www.aspeninstitute.org/publications/connecting-people-work/">book examining various aspects of sector-based workforce development&nbsp;</a>as well as networks such as the&nbsp;<a href="https://insightcced.org/our-areas-of-focus/workforce-development/national-network-of-sector-partners-nnsp/">National Network of Sector Practitioners</a>&nbsp;and the&nbsp;<a href="https://nationalfund.org/">National Fund for Workforce Solutions</a>.'],
+		TJ:['<b>Transitional jobs programs&nbsp;</b>are for people with limited work experience who would otherwise struggle to find employment.&nbsp;<a href="https://www.mdrc.org/sites/default/files/LookingForwardMemo_SubsidizedEmployment.pdf">These programs</a>&nbsp;provide short-term subsidized employment<b>&nbsp;</b>and supportive services<b>&nbsp;</b>based on the theory that the best way to learn to work is by working. A number of programs are&nbsp;<a href="https://www.mdrc.org/publication/implementation-and-early-impacts-next-generation-subsidized-employment-programs">currently being evaluated</a>, building on the lessons of previous evaluations, which have been mixed. The&nbsp;<a href="https://ceoworks.org/">Center for Employment Opportunities</a>, which serves previously incarcerated people, was found to significantly&nbsp;<a href="http://www.mdrc.org/sites/default/files/full_451.pdf">reduce recidivism</a>, but it did not increase subsequent unsubsidized employment,&nbsp;<a href="https://www.mdrc.org/publication/should-government-subsidize-jobs-unemployed">nor did other recently evaluated programs.</a>&nbsp;Some researchers have suggested that in addition to testing new strategies to improve employment outcomes of transitional jobs participants,&nbsp;<a href="http://www.mdrc.org/publication/transitional-jobs">it may also be important</a>&nbsp;to consider other benefits related to community-building and civic engagement. Individuals could build on their&nbsp;<a href="http://www.buildingbetterprograms.org/wp-content/uploads/2016/04/persistent-nonworkers.pdf">roles as community members and parents</a>&nbsp;by engaging in constructive, stipend-paying activities such as participating in an afterschool safety patrol or maintaining a community garden.', 'More information on transitional jobs is available via the&nbsp;<a href="https://www.heartlandalliance.org/nationalinitiatives/our-initiatives/national-transitional-jobs/">National Transitional Jobs Network</a>&nbsp;and a&nbsp;<a href="https://www.law.georgetown.edu/academics/centers-institutes/poverty-inequality/current-projects/upload/GCPI-Subsidized-Employment-Paper-20160413.pdf">report reviewing their history and effectiveness</a>.'],
+		SE:['<b>Social enterprises&nbsp;</b>hire people with limited work experience who would otherwise struggle to find employment.&nbsp;<a href="https://socialenterprise.us/about/social-enterprise/">Social enterprises</a> combine the social mission of a nonprofit with the market-driven approach of a business, and while they can focus on any of a number of social issues, the programs featured here focus specifically on employment. They run businesses in fields such as food service, groundskeeping, and maintenance, and directly hire the people they are serving. In conjunction with employment, the organizations&nbsp;provide supportive services and help employees find other job opportunities when they are ready.&nbsp;The organizations develop a mutually reinforcing relationship between the business and social missions—the social mission of serving the unemployed would not be financially viable without the business revenue, and the enterprise relies on participants as its workforce. A&nbsp;<a href="https://www.mathematica-mpr.com/news/mathematica-jobs-study-explores-social-enterprises-redf">recent evaluation</a>&nbsp;of social enterprises in California found that they increased employment levels among participants.','Social enterprises have grown in popularity in recent years, with&nbsp;<a href="https://ssir.org/topics/category/social_enterprise">active discussions</a>&nbsp;about the challenges and opportunities of melding nonprofit and for-profit business models. They have a variety of investors and financing models, with one foundation,&nbsp;<a href="http://redf.org/">REDF</a>, that focuses solely on employment-focused social enterprises and has made several commitments to expand and&nbsp;<a href="http://redf.org/what-we-do/lead/">strengthen the field</a>.'],
+		JS:['<b>Job search assistance and counseling&nbsp;</b>refers broadly to services to help employers and job seekers connect more efficiently than they might otherwise. They reduce labor market friction by providing job candidates with information about job opportunities, in-demand skills, and training options. These services are central to the network of federally supported&nbsp;<a href="https://www.careeronestop.org/LocalHelp/AmericanJobCenters/american-job-centers.aspx">American Job Centers</a>, and are also incorporated into many other workforce programs. More specifically, such services consist of skill and interest assessments, career and training planning, case management and referrals, help with resume preparation and interviewing skills, and information on various job openings and associated skill and education requirements. They can be provided by staff or be self-service via a resource room and online offerings, and can be individualized or provided in group settings such as workshops.','<a href="http://research.upjohn.org/cgi/viewcontent.cgi?article=1161&amp;context=up_bookchapters">Past research</a>&nbsp;supports the effectiveness of publicly supported job search assistance, as does a more&nbsp;<a href="https://www.mathematica-mpr.com/our-publications-and-findings/publications/providing-public-workforce-services-to-job-seekers-15-month-impact-findings-on-the-wia-adult?MPRSource=TCSide">recent evaluation</a>&nbsp;of staff-assisted and personalized assistance in American Job Centers.'],
+		SI:['<b>Sector initiatives&nbsp;</b>are partnerships among employers, educators, and other workforce stakeholders<b>&nbsp;</b>to identify and address the workforce needs of particular industries within a regional labor market. They have a “dual customer” approach, seeking to the meet the needs of both employers and workers. These partnerships identify employers’ skill and workforce needs, aggregate employer interest and demand, and develop recruiting, assessment, and training strategies to help employers find workers with the right skills. They reduce the inefficiencies of one-by-one engagements in which training organizations seek to meet the job placement and training needs of individual employers. The organization operating the sector strategy (often a training organization, consortium of employers, or local workforce investment board) develops expertise about a given industry’s occupational skill requirements, business practices, markets, and other factors that affect employers’ hiring and training needs.','A growing body of research supports their effectiveness (see&nbsp;<a href="http://www.aspenwsi.org/resource/ppvtuning-local-labor-market/">here</a>,&nbsp;<a href="http://www.mdrc.org/publication/encouraging-evidence-sector-focused-advancement-strategy-0">here</a>, and&nbsp;<a href="http://economicmobilitycorp.org/index.php?page=81">here</a>). The field is maturing, as evidenced by a&nbsp;<a href="https://www.aspeninstitute.org/publications/connecting-people-work/">book examining various aspects of sector-based workforce development&nbsp;</a>as well as networks such as the&nbsp;<a href="https://insightcced.org/our-areas-of-focus/workforce-development/national-network-of-sector-partners-nnsp/">National Network of Sector Practitioners</a>&nbsp;and the&nbsp;<a href="https://nationalfund.org/">National Fund for Workforce Solutions</a>.'],
 		"2G":['<b>Two-generation programs&nbsp;</b>meet the needs of low-income<b>&nbsp;</b>parents and their children together. Different programs emphasize&nbsp;various aspects of family and economic well-being, with some specifically focused on employment. These provide training to low-income parents for in-demand jobs coupled with quality early childhood education for their young children. A two-generation approach is not new, but a fresh wave of programs and energy has emerged in the past five to ten years; see&nbsp;<a href="http://www.futureofchildren.org/sites/futureofchildren/files/media/helping_parents_helping_children_24_01_full_journal.pdf">here</a>&nbsp;for more background.','<a href="https://captulsa.org/families/family-advancement/careeradvance/">Career<i>Advance</i></a>, a program helping parents prepare for jobs in the health care field,&nbsp;<a href="http://b.3cdn.net/ascend/91a575b42e3dc4983b_t4m6v6upy.pdf">was recently found</a>&nbsp;to have positive effects on both parents and children. A network of practitioners, researchers, philanthropists, and educators,&nbsp;<a href="http://ascend.aspeninstitute.org/">Ascend</a>, is actively supporting the adoption and refinement of two-generation approaches.'],
 		AP:['<b>Apprenticeships&nbsp;</b>take an “earn and learn” approach to education and training: apprentices earn wages while performing productive work and undergoing supervised, work-based training with related academic instruction. They represent the most structured model of employer engagement in training, since employers hire the apprentices and provide on-the-job training.',
-			'Most apprenticeships&nbsp;<a href="http://ftp.iza.org/pp46.pdf">are clustered in construction and manufacturing</a>, although they exist in other fields such as utilities, auto and truck repair, police and fire, trucking, child care, and long-term care.&nbsp;<a href="https://www.mathematica-mpr.com/our-publications-and-findings/publications/an-effectiveness-assessment-and-costbenefit-analysis-of-registered-apprenticeship-in-10-states">An analysis</a>&nbsp;of&nbsp;registered apprenticeship in 10 states found large earnings gains among those who participated. (There are also apprenticeships that are not registered with the federal or state governments, although less is known about these.) Other research is also positive: one study reported that employers participating in registered apprenticeships&nbsp;<a href="Another%20study%20found%20that%20employers%20with%20apprenticeship%20programs%20benefited%20as%20well%20in%20terms%20of%20increased%20productivity.">valued the program</a>&nbsp;and found that it helped meet their needs for skilled workers, and another identified<a href="http://www.esa.gov/reports/benefits-and-costs-apprenticeships-business-perspective">productivity gains</a>&nbsp;for&nbsp;employers with apprenticeship programs.', 'For more information, see the&nbsp;<a href="https://innovativeapprenticeship.org/">American Institute for Innovative Apprenticeship</a>.'],
-		AS:['<b>ASAP (Accelerated Study in Associate Programs)&nbsp;</b>is a comprehensive approach designed by theCity University of New York to increase the graduation rate of low-income community college students seeking an associate’s degree.&nbsp;<a href="http://www1.cuny.edu/sites/asap/">The program</a>&nbsp;requires students to attend full-time and provides a range of academic, financial, and person supports. It was created in 2007 with support from the&nbsp;<a href="http://www1.nyc.gov/site/opportunity/index.page">New York City Center for Economic Opportunity</a>&nbsp;(now known as the Mayor’s Office for Economic Opportunity).','<a href="http://www.mdrc.org/project/evaluation-accelerated-study-associate-programs-asap-developmental-education-students#overview">An evaluation</a>&nbsp;found that ASAP almost doubled graduation rates, the largest effect the researchers had found in any large-scale evaluation of a higher education program. CUNY has expanded ASAP to serve more students across its colleges, and a&nbsp;<a href="http://www.mdrc.org/publication/bringing-cuny-accelerated-study-associate-programs-asap-ohio">replication study</a>&nbsp;in Ohio community colleges is underway.']
+			'Most apprenticeships&nbsp;<a href="http://ftp.iza.org/pp46.pdf">are clustered in construction and manufacturing</a>, although they exist in other fields such as utilities, auto and truck repair, police and fire, trucking, child care, and long-term care.&nbsp;<a href="https://www.mathematica-mpr.com/our-publications-and-findings/publications/an-effectiveness-assessment-and-costbenefit-analysis-of-registered-apprenticeship-in-10-states">An analysis</a>&nbsp;of&nbsp;registered apprenticeship in 10 states found large earnings gains among those who participated. (There are also apprenticeships that are not registered with the federal or state governments, although less is known about these.) Other research is also positive: one study reported that employers participating in registered apprenticeships&nbsp;<a href="Another%20study%20found%20that%20employers%20with%20apprenticeship%20programs%20benefited%20as%20well%20in%20terms%20of%20increased%20productivity.">valued the program</a>&nbsp;and found that it helped meet their needs for skilled workers, and another identified<a href="http://www.esa.gov/reports/benefits-and-costs-apprenticeships-business-perspective"> productivity gains</a>&nbsp;for&nbsp;employers with apprenticeship programs.', 'For more information, see the&nbsp;<a href="https://innovativeapprenticeship.org/">American Institute for Innovative Apprenticeship</a>.'],
+		AS:['<b>ASAP (Accelerated Study in Associate Programs)&nbsp;</b>is a comprehensive approach designed by the City University of New York to increase the graduation rate of low-income community college students seeking an Associate degree.&nbsp;<a href="http://www1.cuny.edu/sites/asap/">The program</a>&nbsp;requires students to attend full-time and provides a range of academic, financial, and personal supports. It was created in 2007 with support from the&nbsp;<a href="http://www1.nyc.gov/site/opportunity/index.page">New York City Center for Economic Opportunity</a>&nbsp;(now known as the Mayor’s Office for Economic Opportunity).','<a href="http://www.mdrc.org/project/evaluation-accelerated-study-associate-programs-asap-developmental-education-students#overview">An evaluation</a>&nbsp;found that ASAP almost doubled graduation rates, the largest effect the researchers had found in any large-scale evaluation of a higher education program. CUNY has expanded ASAP to serve more students across its colleges, and a&nbsp;<a href="http://www.mdrc.org/publication/bringing-cuny-accelerated-study-associate-programs-asap-ohio">replication study</a>&nbsp;in Ohio community colleges is underway.']
 	};
 
-	var body_wrap = d3.select("body");
+	var body_wrap = d3.select("#out-of-work");
 	var show = function(id){
 		d3.event.stopPropagation();
 		var fixed = body_wrap.append("div")
@@ -1123,7 +1143,7 @@ function interventions(){
 			.style("padding","1em 1em 1em 1em")
 			.style("line-height","1.4em")
 			.style("overflow","auto")
-			.style("max-height","90vh");
+			.style("max-height","85vh");
 
 
 
@@ -1144,8 +1164,8 @@ function interventions(){
 			   .style("cursor","pointer")
 			   .classed("make-sans",true)
 			   .style("position","absolute")
-			   .style("top","-"+x_height+"px")
-			   .style("right","-"+x_width+"px")
+			   .style("top","-"+(x_height+5)+"px")
+			   .style("right","5px")
 			   .style("width",x_width+"px")
 			   .style("height",x_height+"px")
 			   .append("svg")
@@ -1205,7 +1225,14 @@ function interventions(){
 			text_wrap.append("p").text("Effective practices for this group")
 						.style("float","left").style("margin","0em 1em 0em 0")
 						.style("padding","0px 10px 0em 10px")
+						.append("span")
+						.style("margin-left","6px")
+						.classed("hand-icon",true)
 						;
+
+
+		add_hand_icons(container);
+
 
 		var rows = wrap.selectAll("div.intervention-row").data([descriptions.initials.slice(0)]) //,descriptions.initials.slice(4)])
 							.enter().append("div").classed("c-fix intervention-row",true).style("margin","0.75em 0em 0.5em 0px")
@@ -1244,14 +1271,19 @@ function interventions(){
 							});	
 
 		var timer;
-		var hover_text = wrap.append("p").style("margin","0em 0em 0em 10px").style("font-size","1em").style("font-style","italic").style("clear","both");
+		var hover_text = wrap.append("p")
+			.style("margin","0em 0em 0em 10px").style("font-size","1em")
+			.style("font-style","italic")
+			.style("clear","both")
+			.html("&nbsp;");
+			
 		dots.on("mouseenter", function(d){
 			clearTimeout(timer);
 			hover_text.text(descriptions.titles[d]).transition().duration(0).style("opacity",turn_on.hasOwnProperty(d) ? 1 : 0.35);
 		});	
 		dots.on("mouseleave", function(d){
 			timer = setTimeout(function(){
-				hover_text.text("").transition().duration(400).style("opacity","0");
+				hover_text.html("&nbsp;").transition().duration(400).style("opacity","0");
 			},150);
 		});	
 
@@ -1351,25 +1383,6 @@ function puma_maps(container){
 							.append("b")
 							.text("Geographic distribution of each major group");
 
-	//package data for each map slide
-	var obj = function(supercluster, group, title_override){
-		if(arguments.length == 1){
-			var group = null;
-		}
-
-		if(arguments.length > 2){
-			var title = title_override;
-		}
-		else{
-			var title = cluster_title(supercluster);
-		}
-
-		return {super:supercluster, 
-				group:group, 
-				color:cluster_color(supercluster), 
-				title:title}
-	};
-
 	var topo_repo = {};
 
 	//layout function
@@ -1457,6 +1470,7 @@ function puma_maps(container){
 			var filler = d3.interpolateLab("#ffffff", d3.color(d.color).darker(0.15));
 
 			var data_accessor = function(puma, max_val){
+				//should always be a grp variable
 				var indicator = !!d.group ? "grp"+d.group : "sc"+d.id;
 
 				var val = puma.properties[indicator];
@@ -1529,7 +1543,7 @@ function puma_maps(container){
 		//then callback is a no-op
 		var async_callback = function(topo){
 			if(id!==current_id || topo == null){
-				wrap.style("visibility","hidden").style("height","150px");
+				wrap.style("visibility", topo == null ? "hidden" : "visible");
 				return null; //no-op
 			}
 			else{
@@ -1596,10 +1610,10 @@ function topline(container, cluster_data){
 		
 		//var tile_wrap2 = wrap.append("div").classed("basic-tile-row c-fix",true);
 		var tile2 = tile_wrap1.append("div").classed("basic-tile",true);
-			tile2.append("p").text("Out of work share*");
+			tile2.append("p").text("Out-of-work share*");
 		var tile2row2 = tile2.append("div").classed("c-fix", true);
 		var share_out_of_work = tile2row2.append("p").classed("big-stat",true).style("float","left").text(share);
-			tile2.append("p").classed("small-note",true).text("*Of the 25–64 year old civilian, non-insitutionalized population.");
+			tile2.append("p").classed("small-note",true).text("*Of the 25–64 year-old civilian, non-institutionalized population.");
 
 
 		var share_distro = tile2row2.append("div")
@@ -1661,32 +1675,56 @@ function jurisdiction_profiles(container){
 	})();
 	
 	//DOM STRUCTURE---------------
-		var outer_wrap = d3.select(container).classed("makesans c-fix", true).style("margin-top","2em");
+		var outer_wrap = d3.select(container).classed("makesans c-fix", true).style("margin-top","0em").style("padding-top","1px");
+
+		var top_bar = outer_wrap.append("div").classed("c-fix",true);
+
+		//select menu
+		var select_outer_wrap = top_bar.append("div")
+									.style("padding","0.25em 0.25em 0.75em 0.25em")
+									.style("margin","0em 0em 0em 0em")
+									.style("float","right")
+									.style("height","4em")
+									.style("display","table");
+
+		var select_inner_wrap = select_outer_wrap.append("div")
+									.style("display","table-cell")
+									.style("vertical-align","bottom");
+
+			select_inner_wrap.append("p")
+							 .style("font-style","italic")
+							 .text("Select a jurisdiction")
+							 .style("margin","0em 0em 0.3em 0.5em")
+							;	
+
+		var select_wrap = select_inner_wrap.append("div")
+									.style("border","1px solid #bbbbbb")
+									.style("border-radius","10px")
+									.style("background-color","#e0e0e0");	
 		
 		
 		//title above ribbon
-		var title_wrap = outer_wrap.append("div").classed("c-fix",true).style("display","table").style("width","100%");
+		var title_wrap = top_bar.append("div").classed("c-fix",true)
+								.style("float","left")
+								.style("height","4em")
+								.style("display","table");
 
-		var top_title = title_wrap.append("p").style("display","table-cell")
-			.style("padding","0em 2em 0.5em 10px")
-			.style("line-height","1.25em")
+		var top_title = title_wrap.append("p")
+			.style("padding","0em 2em 0.25em 10px")
+			.style("margin","0em")
+			.style("line-height","1.4em")
+			.style("display","table-cell")
 			.style("vertical-align","bottom");
 
 		var place_title = top_title.append("span").classed("font1x",true).style("font-weight","bold")
 					 				.text("Distribution of major out-of-work groups in ").append("span");
 			
-			top_title.append("span").text(" | ");
-			top_title.append("span").html("<em>Select a segment to view underlying data</em>").style("white-space","nowrap");
+			top_title.append("span").html("</br >");
+
+		var segment_title = top_title.append("span").html("Select a segment to view underlying data")
+								.style("white-space","nowrap")
+								.style("font-style","italic");
 		
-		//select menu
-		var select_wrap = title_wrap.append("div")
-									.style("display","table-cell")
-									.style("vertical-align","bottom")
-									.style("padding-bottom", "0.75em")
-									.append("div")
-									.style("padding","0.25em 0.25em 0em 0.25em")
-									.style("border-bottom","1px solid #aaaaaa")
-									.style("float","right");
 
 		var select = select_wrap.append("select").style("width","100%");
 		var options = select.selectAll("option").data(options_data)
@@ -1753,7 +1791,7 @@ function jurisdiction_profiles(container){
 
 		//rect_data should look like: [{count:x, share:count/total, id:superclus2}]
 		//the data in rect_data0 will be nested when there are multiple groups within a supercluster
-		var rect_data0 = [1,2,3,4,5,6,7].map(function(d){
+		var rect_data0 = [3,1,2,5,4,7,6].map(function(d){
 			if(dat.hasOwnProperty(d+"")){
 				var R = dat[d+""].map(function(dd){
 					var obs = {};
@@ -1792,6 +1830,7 @@ function jurisdiction_profiles(container){
 			if(superclus2=="ALL" || superclus2==null){
 				var D = oow;
 				draw_topline.all(format.num0(tot), format.sh1(share));
+				segment_title.html("Select a segment to view underlying data").interrupt().transition().duration(0).style("color","#111111");
 			}
 			else{
 				var i=-1;
@@ -1803,6 +1842,8 @@ function jurisdiction_profiles(container){
 					}
 				}
 				draw_topline.group(D, superclus2, color);
+				segment_title.html("Select the segment again to reset the data")
+					.interrupt().transition().duration(100).style("color",color).transition().duration(800).style("color","#111111");
 			}
 			//console.log(D);
 
@@ -1820,7 +1861,9 @@ function jurisdiction_profiles(container){
 		draw_bar_charts(oow, sc_stacker.title("ALL") + " in " + place, null, sc_stacker.color("ALL"));
 		
 		//args: geoid, group, superclus
-		draw_puma_maps(id, "ALL", "ALL", rect_data);		
+		draw_puma_maps(id, "ALL", "ALL", rect_data);	
+
+		segment_title.html("Select a segment to view underlying data").interrupt().transition().duration(0).style("color","#111111");	
 		
 	}
 
@@ -1858,10 +1901,19 @@ function main(){
 	//dir.add("avatars", "out-of-work/data/avatars");
 	//dir.add("maps", "out-of-work/data/maps");
 
-	funnel(document.getElementById("view0-wrap"));
-	supercluster_profiles(document.getElementById("view2-wrap"));
-	jurisdiction_profiles(document.getElementById("jurisdiction-profile"));
-	interventions().grid(document.getElementById("interventions-grid"));
+	//browser capability
+	if(!document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1") || 
+		!Array.prototype.filter || !Array.prototype.map){
+		document.getElementById("out-of-work").innerHTML = '<p style="font-style:italic;text-align:center;margin:30px 0px 30px 0px;">This interactive feature requires a modern browser such as Chrome, Firefox, IE9+, or Safari.</p>';
+		return null;
+	}
+	else{	
+		funnel(document.getElementById("view0-wrap"));
+		supercluster_profiles(document.getElementById("view2-wrap"));
+		jurisdiction_profiles(document.getElementById("view3-wrap"));
+		interventions().grid(document.getElementById("interventions-grid"));
+		add_hand_icons();
+	}
 
 } //close main()
 
