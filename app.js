@@ -1893,13 +1893,13 @@ function jurisdiction_profiles(container){
 //main out of work function to run on load
 function main(){
 
-	dir.local("./");
-	dir.add("avatars", "data/avatars");
-	dir.add("maps", "data/maps");
+	//dir.local("./");
+	//dir.add("avatars", "data/avatars");
+	//dir.add("maps", "data/maps");
 
 	//production data
-	//dir.add("avatars", "out-of-work/data/avatars");
-	//dir.add("maps", "out-of-work/data/maps");
+	dir.add("avatars", "out-of-work/data/avatars");
+	dir.add("maps", "out-of-work/data/maps");
 
 	//browser capability
 	if(!document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1") || 
