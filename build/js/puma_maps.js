@@ -67,7 +67,7 @@ export default function puma_maps(container){
 	}
 
 	//draw takes a group id and a topojson object -- it computes a layout and draws
-	var draw = function(group, rect_data, topo){
+	var draw = function(group, rect_data, topo, jurisdiction_name){
 		
 		var L = layout(rect_data, topo);
 
@@ -76,6 +76,8 @@ export default function puma_maps(container){
 
 		var proj = d3.geoEquirectangular().fitExtent(extent, geo);
 		var path = d3.geoPath().projection(proj);
+
+		map_title.text("Geographic distribution of each major group in " + jurisdiction_name);
 
 		//the d bound to each tile is the same as the d bound to the big stacked bar segments
 		//props: id (supercluster), group, count, share (of out of work), num_groups (total groups within superclus), num_group (arbitrary number of group)
@@ -141,15 +143,21 @@ export default function puma_maps(container){
 		}
 		else{
 			var file =  dir.url("maps", geo_id+".json");
-			d3.json(file, function(err, dat){
-				if(!!err){
-					callback(null);
-				}
-				else{
-					topo_repo[geo_id] = dat;
-					callback(dat);
-				}
-			});
+			try{
+				d3.json(file, function(err, dat){
+					if(!!err){
+						callback(null);
+					}
+					else{
+						topo_repo[geo_id] = dat;
+						callback(dat);
+					}
+				});
+			}
+			catch(e){
+				//console.log(e);
+				callback(null);
+			}
 		}
 	}
 
@@ -158,7 +166,7 @@ export default function puma_maps(container){
 	var current_group = "ALL";
 
 	//id is geoid, group is cluster id
-	var do_all = function(id, group, superclus, rect_data){
+	var do_all = function(id, group, superclus, rect_data, jurisdiction_name){
 		//keep track globally of the most recently selected geo and group
 		current_id = id;
 		current_group = group;
@@ -180,7 +188,7 @@ export default function puma_maps(container){
 			}
 			else{
 				wrap.style("visibility","visible").style("height","auto");
-				draw(group, rect_data_, topo);
+				draw(group, rect_data_, topo, jurisdiction_name);
 
 			}
 		}

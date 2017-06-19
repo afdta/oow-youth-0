@@ -1436,7 +1436,7 @@ function puma_maps(container){
 	};
 
 	//draw takes a group id and a topojson object -- it computes a layout and draws
-	var draw = function(group, rect_data, topo){
+	var draw = function(group, rect_data, topo, jurisdiction_name){
 		
 		var L = layout(rect_data, topo);
 
@@ -1445,6 +1445,8 @@ function puma_maps(container){
 
 		var proj = d3.geoEquirectangular().fitExtent(extent, geo);
 		var path = d3.geoPath().projection(proj);
+
+		map_title.text("Geographic distribution of each major group in " + jurisdiction_name);
 
 		//the d bound to each tile is the same as the d bound to the big stacked bar segments
 		//props: id (supercluster), group, count, share (of out of work), num_groups (total groups within superclus), num_group (arbitrary number of group)
@@ -1509,15 +1511,21 @@ function puma_maps(container){
 		}
 		else{
 			var file =  dir.url("maps", geo_id+".json");
-			d3.json(file, function(err, dat){
-				if(!!err){
-					callback(null);
-				}
-				else{
-					topo_repo[geo_id] = dat;
-					callback(dat);
-				}
-			});
+			try{
+				d3.json(file, function(err, dat){
+					if(!!err){
+						callback(null);
+					}
+					else{
+						topo_repo[geo_id] = dat;
+						callback(dat);
+					}
+				});
+			}
+			catch(e){
+				//console.log(e);
+				callback(null);
+			}
 		}
 	};
 
@@ -1526,7 +1534,7 @@ function puma_maps(container){
 	var current_group = "ALL";
 
 	//id is geoid, group is cluster id
-	var do_all = function(id, group, superclus, rect_data){
+	var do_all = function(id, group, superclus, rect_data, jurisdiction_name){
 		//keep track globally of the most recently selected geo and group
 		current_id = id;
 		current_group = group;
@@ -1548,7 +1556,7 @@ function puma_maps(container){
 			}
 			else{
 				wrap.style("visibility","visible").style("height","auto");
-				draw(group, rect_data_, topo);
+				draw(group, rect_data_, topo, jurisdiction_name);
 
 			}
 		};
@@ -1706,7 +1714,7 @@ function jurisdiction_profiles(container){
 		//title above ribbon
 		var title_wrap = top_bar.append("div").classed("c-fix",true)
 								.style("float","left")
-								.style("height","4em")
+								.style("height","5em")
 								.style("display","table");
 
 		var top_title = title_wrap.append("p")
@@ -1850,7 +1858,7 @@ function jurisdiction_profiles(container){
 			draw_bar_charts(D, title, subtitle, color);
 
 			//args: geoid, group, superclus, 
-			draw_puma_maps(id, group, superclus2, rect_data);
+			draw_puma_maps(id, group, superclus2, rect_data, place);
 			//map_title.style("visibility","visible");
 
 		}, true);
@@ -1861,7 +1869,7 @@ function jurisdiction_profiles(container){
 		draw_bar_charts(oow, sc_stacker.title("ALL") + " in " + place, null, sc_stacker.color("ALL"));
 		
 		//args: geoid, group, superclus
-		draw_puma_maps(id, "ALL", "ALL", rect_data);	
+		draw_puma_maps(id, "ALL", "ALL", rect_data, place);	
 
 		segment_title.html("Select a segment to view underlying data").interrupt().transition().duration(0).style("color","#111111");	
 		

@@ -72,7 +72,7 @@ export default function jurisdiction_profiles(container){
 		//title above ribbon
 		var title_wrap = top_bar.append("div").classed("c-fix",true)
 								.style("float","left")
-								.style("height","4em")
+								.style("height","5em")
 								.style("display","table")
 								;
 
@@ -221,7 +221,7 @@ export default function jurisdiction_profiles(container){
 			draw_bar_charts(D, title, subtitle, color);
 
 			//args: geoid, group, superclus, 
-			draw_puma_maps(id, group, superclus2, rect_data);
+			draw_puma_maps(id, group, superclus2, rect_data, place);
 			//map_title.style("visibility","visible");
 
 		}, true);
@@ -232,7 +232,7 @@ export default function jurisdiction_profiles(container){
 		draw_bar_charts(oow, sc_stacker.title("ALL") + " in " + place, null, sc_stacker.color("ALL"));
 		
 		//args: geoid, group, superclus
-		draw_puma_maps(id, "ALL", "ALL", rect_data);	
+		draw_puma_maps(id, "ALL", "ALL", rect_data, place);	
 
 		segment_title.html("Select a segment to view underlying data").interrupt().transition().duration(0).style("color","#111111");	
 		
