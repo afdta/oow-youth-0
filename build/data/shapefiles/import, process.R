@@ -1,5 +1,7 @@
 library("rgdal")
 library("tidyr")
+library("broom")
+library("ggplot2")
 
 setwd("/home/alec/Projects/Brookings/out-of-work/build/data")
 
@@ -42,5 +44,35 @@ for(p in places){
   makeWriteShp(p)
 }
 
+#plot dc
+plot(sp2[sp2@data$FIPS_final=="11001a",])
 
+fort <- tidy(sp2[sp2@data$FIPS_final=="11001a",], region="GEOID10")
+fort2 <- merge(fort, pumadat2, by.x="id", by.y="stpuma", all=FALSE)
+
+# 1.“Young, less-educated, and diverse” (supercluster 3)
+# 2.“Less-educated prime-age people” (supercluster 1)
+# 3.“Diverse, less-educated, and eyeing retirement” (supercluster 2)
+# 4.“Motivated and moderately educated younger people” (supercluster 5)
+# 5.“Moderately educated older people” (supercluster 4)
+# 6.“Highly educated and engaged younger people” (supercluster 7)
+# 7.“Highly educated, high-income older people” (supercluster 6)
+
+ggplot() + geom_polygon(data=fort2, aes(x=long, y=lat, group=id, fill=sc3)) + 
+  scale_fill_continuous(low="#ffffff", high="#0d73d6")
+
+ggplot() + geom_polygon(data=fort2, aes(x=long, y=lat, group=id, fill=sc1)) + 
+  scale_fill_continuous(low="#ffffff", high="#0d73d6") + title("Less educated prime age")
+
+ggplot() + geom_polygon(data=fort2, aes(x=long, y=lat, group=id, fill=sc5)) + 
+  scale_fill_continuous(low="#ffffff", high="#0d73d6") + title("Motivated and moderately edu young")
+
+ggplot() + geom_polygon(data=fort2, aes(x=long, y=lat, group=id, fill=sc4)) + 
+  scale_fill_continuous(low="#ffffff", high="#0d73d6") + title("moderately older")
+
+ggplot() + geom_polygon(data=fort2, aes(x=long, y=lat, group=id, fill=sc7)) + 
+  scale_fill_continuous(low="#ffffff", high="#0d73d6") + title("hi ed young")
+
+ggplot() + geom_polygon(data=fort2, aes(x=long, y=lat, group=id, fill=sc6)) + 
+  scale_fill_continuous(low="#ffffff", high="#0d73d6") + title("hi ed hi inc")
 

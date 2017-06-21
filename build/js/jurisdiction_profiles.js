@@ -103,14 +103,14 @@ export default function jurisdiction_profiles(container){
 							;
 		
 		//ribbon svg (stacked bar)				   
-		var svg = outer_wrap.append("svg").attr("width","100%").attr("height","50px");
+		var svg = outer_wrap.append("svg").attr("width","100%").attr("height","80px");
 
 		//wrapper of topline data readout and bar charts
 		var wrap = outer_wrap.append("div")
 							 .classed("c-fix topline-bar-charts",true)
 							 ;
 
-		var data_title_wrap = wrap.append("div").style("margin","36px 0em 0em 0px").style("padding","0em 10px 0px 10px");
+		var data_title_wrap = wrap.append("div").style("margin","5px 0em 0em 0px").style("padding","0em 10px 0px 10px");
 		var data_title = data_title_wrap.append("p").style("line-height","1.5em").style("margin","0em");
 
 		//topline data readouot

@@ -1,6 +1,6 @@
 import format from '../../../js-modules/formats.js';
 
-export default function sc_stack(){
+export default function sc_stack(drop_shadow_ref){
 
 	var colors = ['#666666','#65a4e5','#a6d854','#0d73d6','#fc8d62','#66c2a5','#e5c494','#ffd92f'];
 
@@ -24,6 +24,8 @@ export default function sc_stack(){
 		"6":"This is the wealthiest group, reporting median family income of $83,546. Two-thirds are married, the highest rate of any group, but few are caring for children. It is also the least racially and ethnically diverse group, and just 14 percent speak English less than very well. Twenty-nine percent were born outside the U.S., but like all members of the group, all possess a Bachelor degree or higher; and 88 percent of all members are U.S. citizens. They show moderate interest in work, comparable to that of the largest group of less-educated prime-age workers.",
 		"7":"Among all groups, members of this group were the most likely to have worked in the previous year, and they have the second-highest rate of actively looking for work. They are the least likely of any group to report some form of disability. All members have at least a Bachelor degree and relatively high median family income. This group is predominantly white and Asian; 39 percent were born outside the United States. Over half are married, and a quarter are married with children—the highest rate of any group."
 	}	
+
+	var drop_shadow = arguments.length > 0 ? drop_shadow_ref : "url(#feBlur)";
 
 	var sc = {};
 
@@ -54,6 +56,8 @@ export default function sc_stack(){
 		}
 	}
 
+	var rect_height = 50;
+
 	//rect_data should look like: [{count:x, share:count/total, id:superclus2}]
 	sc.stack = function(rect_data, svg, rect_callback, add_borders, highlight){
 		var cumulative = 0;
@@ -76,15 +80,20 @@ export default function sc_stack(){
 			return sc.title(d.id);
 		});
 
+		rectsG.filter(function(d){return d.id==highlight}).raise();
+
 		var rects0 = rectsG.selectAll("rect").data(function(d){return [d,d]});
 			rects0.exit().remove();
 		var rects = rects0.enter().append("rect").merge(rects0)
-						.attr("height",function(d,i){return i==1 ? "100%" : "108%"})
-						.attr("y",function(d,i){return i==1 ? "0%" : "-4%"})
+						.attr("height",function(d,i){return i==1 ? rect_height : rect_height+4})
+						.attr("y",function(d,i){return i==1 ? 0 : -2})
 						.style("shape-rendering","crispEdges")
 						.style("stroke","#eeeeee")
 						.style("stroke-width","0")
 						.style("visibility",function(d,i){return i==1 ? "visible" : (d.id==highlight ? "visible" : "hidden")})
+						.attr("filter", function(d,i){
+							return i==0 && d.id==highlight ? drop_shadow : null;
+						})
 						;
 
 			rects.transition()
@@ -107,8 +116,8 @@ export default function sc_stack(){
 			texts0.exit().remove();
 		var texts = texts0.enter().append("text").merge(texts0)
 						.attr("x", function(d){return (100*(d.cumulative + d.share))+"%"})
-						.attr("y", "100%")
-						.attr("dy",16)
+						.attr("y", rect_height)
+						.attr("dy",17)
 						.attr("dx",-3)
 						.attr("text-anchor","end")
 						.text(function(d){return format.sh1(d.share)})
@@ -144,7 +153,7 @@ export default function sc_stack(){
 									return format.num0(d.count)
 								}) 
 								.attr("x", function(d){return (100*(d.cumulative + d.share))+"%"})
-								.attr("y", "100%")
+								.attr("y", rect_height)
 								.attr("dy",35)
 								.attr("dx",-3)
 								.attr("text-anchor","end")
@@ -155,11 +164,53 @@ export default function sc_stack(){
 								.style("visibility","hidden")
 								;
 
+		if(!!add_borders){
+			var line_rect_data = [];
+			var r = -1;
+			while(++r < rect_data.length){
+				if(rect_data[r].count > 0){
+					line_rect_data.push(rect_data[r]);
+				}
+			}
+
+			var lines0 = svg.selectAll("line").data(line_rect_data, function(d){return d.mergeid});
+				lines0.exit().remove();
+			var lines = lines0.enter().append("line")
+					.merge(lines0)
+					.attr("y1",-2).attr("y2",rect_height+4)
+					.attr("stroke","#ffffff")
+					.attr("stroke-width","1px")
+					.style("shape-rendering","auto")
+					;
+
+				//raise the selected above lines
+				rectsG.filter(function(d){return d.id==highlight}).raise();
+				//raise all but selected line above the rectG
+				lines.filter(function(d){
+					return d.id != highlight;
+				}).raise();
+
+				lines.transition()
+					.duration(transition_duration)
+					.attr("x1", function(d){
+						return ((d.cumulative+d.share)*100)+"%";
+					})
+					.attr("x2", function(d){
+						return ((d.cumulative+d.share)*100)+"%";
+					})
+					.on("end",function(d){
+						d3.select(this).style("shape-rendering","crispEdges")
+					})
+					;
+		}
+
+
 		var text_num_fixed = false;
 		if(arguments.length > 2 && typeof rect_callback == "function"){
 			var selected_superclus = "ALL";
 			var selected_group = "ALL";
 			rectsG.on("mousedown", function(d,i){
+				
 				if(d.id === selected_superclus && d.group === selected_group){
 					//reset to no selection
 					selected_superclus = "ALL";
@@ -168,11 +219,19 @@ export default function sc_stack(){
 				else{
 					selected_superclus = d.id;
 					selected_group = d.group;
+					d3.select(this).raise();
 				}
 
-				rectsG.selectAll("rect").filter(function(d,i){return i==0}).style("visibility", function(d,i){
-					return d.id===selected_superclus && d.group===selected_group ? "visible" : "hidden";
-				})
+				lines.filter(function(d){
+					return d.id != selected_superclus || d.group != selected_group;
+				}).raise();
+
+				rects.filter(function(d,i){return i==0})
+						.style("visibility", function(d,i){
+							return d.id===selected_superclus && d.group===selected_group ? "visible" : "hidden";
+						}).attr("filter", function(d,i){
+							return d.id===selected_superclus ? drop_shadow : null;
+						})
 
 				text_num_fixed = selected_superclus == "ALL" ? false : i;
 				text_num_fixed = false; //never fix, for now
@@ -197,28 +256,6 @@ export default function sc_stack(){
 			});			
 		});
 
-		if(!!add_borders){
-			var lines0 = svg.selectAll("line").data(rect_data, function(d){return d.mergeid});
-			lines0.exit().remove();
-			lines0.enter().append("line")
-					.merge(lines0)
-					.attr("y1","-5%").attr("y2","105%")
-					.attr("stroke","#ffffff")
-					.attr("stroke-width","1px")
-					.style("shape-rendering","auto")
-					.transition()
-					.duration(transition_duration)
-					.attr("x1", function(d){
-						return ((d.cumulative+d.share)*100)+"%";
-					})
-					.attr("x2", function(d){
-						return ((d.cumulative+d.share)*100)+"%";
-					})
-					.on("end",function(d){
-						d3.select(this).style("shape-rendering","crispEdges")
-					})
-					;
-		}
 	}
 
 	return sc;

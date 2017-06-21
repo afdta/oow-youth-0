@@ -19,6 +19,21 @@ function main(){
 	//dir.add("avatars", "data/avatars");
 	//dir.add("maps", "data/maps");
 
+	var defs = d3.select("#svg-filter").style("height","5px").append("svg").append("defs");
+	var filter = defs.append("filter").attr("id","feBlur").attr("width","150%").attr("height","150%");
+		filter.append("feOffset").attr("result","offsetout").attr("in","SourceGraphic").attr("dx","2").attr("dy","2");
+		filter.append("feColorMatrix").attr("result","matrixout").attr("in","offsetout").attr("type","matrix").attr("values","0.25 0 0 0 0 0 0.25 0 0 0 0 0 0.25 0 0 0 0 0 1 0");
+		filter.append("feGaussianBlur").attr("result","blurout").attr("in","matrixout").attr("stdDeviation","2");
+		filter.append("feBlend").attr("in","SourceGraphic").attr("in2","blurout").attr("mode","normal");
+
+		/*filter.html(
+					'<feOffset result="offsetout" in="SourceGraphic" dx="2" dy="2" />' + 
+					'<feColorMatrix result="matrixout" in="offsetout" type="matrix" values="0.25 0 0 0 0 0 0.25 0 0 0 0 0 0.25 0 0 0 0 0 1 0" />' +
+      				'<feGaussianBlur result="blurout" in="matrixout" stdDeviation="2" />' +
+      				'<feBlend in="SourceGraphic" in2="blurout" mode="normal" />'
+      				)
+					;*/
+
 	//production data
 	dir.add("avatars", "out-of-work/data/avatars");
 	dir.add("maps", "out-of-work/data/maps");

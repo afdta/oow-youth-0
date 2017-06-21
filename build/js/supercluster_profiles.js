@@ -44,7 +44,7 @@ export default function supercluster_profiles(container){
 			title.append("span").text(sc_stacker.title(d.superclus2));
 
 							 ;
-		var svg = title_box.append("svg").style("width", "100%").style("height","50px");
+		var svg = title_box.append("svg").style("width", "100%").style("height","80px");
 
 		var rect_data = supercluster_profile_data.map(function(d){
 			return {count: d.count, id:d.superclus2, mergeid:d.superclus2, group:null, share:d.count/tot_oow}
@@ -58,7 +58,7 @@ export default function supercluster_profiles(container){
 		var wrap = thiz.append("div").classed("c-fix topline-bar-charts makesans",true)
 
 		//overview_text
-		var left_side = wrap.append("div").classed("left40",true).style("margin-top","2em");
+		var left_side = wrap.append("div").classed("left40",true).style("margin-top","5px");
 		var overview_wrap = left_side.append("div").classed("reading",true).style("margin-left","10px")
 			overview_wrap.append("p").classed("font1x",true).text("Overview").style("font-weight","bold").style("margin-bottom","0.4em")
 			overview_wrap.append("p").text(sc_stacker.description(d.superclus2));
@@ -68,7 +68,7 @@ export default function supercluster_profiles(container){
 		I.grid_small(intervention_wrap.node(), d.superclus2, COLOR);
 		
 		//bar charts
-		var bar_chart_wrap = wrap.append("div").style("float","left").classed("left60",true).style("margin-top","2em");
+		var bar_chart_wrap = wrap.append("div").style("float","left").classed("left60",true).style("margin-top","5px");
 
 
 		bar_charts(d, bar_chart_wrap, COLOR);

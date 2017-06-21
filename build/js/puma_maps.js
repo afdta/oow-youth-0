@@ -37,13 +37,13 @@ export default function puma_maps(container){
 		var num_wide = 4;
 
 		if(width > 1100 && rect_data.length <= 6){
-			num_wide =  aspect > 0.45 ? 6 : 4;
+			num_wide =  aspect > 0.4 ? 6 : (aspect > 0.25 ? 4 : 2);
 		}
 		else if(width > 800){
-			num_wide =  aspect > 0.45 ? 4 : 2;
+			num_wide =  aspect > 0.4 ? 4 : (aspect > 0.25 ? 2 : 1);
 		}
 		else{
-			num_wide = aspect > 0.45 ? 2 : 1;
+			num_wide = aspect > 0.4 ? 2 : 1;
 		}
 
 		var sm_width = Math.floor(width/num_wide);
@@ -137,26 +137,32 @@ export default function puma_maps(container){
 
 	//callback should first layout, then draw
 	var get_topo = function(geo_id, callback){
-		if(topo_repo.hasOwnProperty(geo_id)){
-			var topo = topo_repo[geo_id];
-			callback(topo);
+		if(geo_id=="AGG"){
+			wrap.style("visibility", "hidden");
+			//don't map
 		}
 		else{
-			var file =  dir.url("maps", geo_id+".json");
-			try{
-				d3.json(file, function(err, dat){
-					if(!!err){
-						callback(null);
-					}
-					else{
-						topo_repo[geo_id] = dat;
-						callback(dat);
-					}
-				});
+			if(topo_repo.hasOwnProperty(geo_id)){
+				var topo = topo_repo[geo_id];
+				callback(topo);
 			}
-			catch(e){
-				//console.log(e);
-				callback(null);
+			else{
+				var file = dir.url("maps", geo_id+".json");
+				try{
+					d3.json(file, function(err, dat){
+						if(!!err){
+							callback(null);
+						}
+						else{
+							topo_repo[geo_id] = dat;
+							callback(dat);
+						}
+					});
+				}
+				catch(e){
+					//console.log(e);
+					callback(null);
+				}
 			}
 		}
 	}

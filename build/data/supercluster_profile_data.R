@@ -21,6 +21,9 @@ distribution <- read.csv("supercluster distribution by geo.csv", stringsAsFactor
                 separate(superclus, c("level","superclus2"), "_pct", convert=TRUE)
 
 topline <- read.csv("topline descriptive statistics 25-64.csv", stringsAsFactors = FALSE)    #[c("POP",keep)]
+toptest <- topline
+toptest$nilf_total <- toptest$count*toptest$nilf
+toptest[1:5, c(1:5, length(toptest))]
 
 sumsum <- function(d){
   return(data.frame(sum=sum(d$count, na.rm=TRUE), n=nrow(d)))

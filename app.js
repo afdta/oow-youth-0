@@ -227,6 +227,15 @@ function funnel(container){
 				emp: 58.7
 			 }];
 
+	var labels = {
+		all: {label: "78.9 million adults ages 25–64", x:5, val:78.9, delay:0},
+		unemp: {label: "4 million unemployed", x:0, val:4, delay:500},
+		nilf: {label: "16.2 million not in the labor force", x:4, val:16.2, delay:500},
+		unemp_oow: {label:"3.6 million out-of-work / unemployed", x:0, val:3.6, delay:3300},
+		nilf_oow: {label:"7.6 million out-of-work / not in the labor force", x:3.6, val:7.6, delay:3300},
+		oow: {label:"11.3 million out-of-work", x:0, val:11.3, delay:1200}
+	};
+
 	var keys_all = ["unemp_oow", "unemp_other", "nilf_oow", "nilf_other", "emp"];
 	var cols = ["#dc2a2a", "#ff6464", "#65a4e5"];
 
@@ -235,9 +244,10 @@ function funnel(container){
 	var clips = 0;
 
 	//keys1 and keys2 should look like: [{key:"unemp_oow", col:0}, ...] where col is 0, 1, or 2 (red, pink, or blue)
- 	function add_layer(text, key_highlight, keys1, keys2){
+ 	function add_layer(text, keys1, keys2, label_array){
 		var slide = wrap.append("div")
 						.style("margin","3em 0em 5em 0em")
+						.style("min-width","280px")
 						.style("opacity","0.5")
 						.classed("c-fix",true);
 
@@ -251,8 +261,9 @@ function funnel(container){
 		var svg_wrap = slide.append("div")
 							.classed("left60",true);
 
-		var svg = svg_wrap.append("svg").attr("width","100%").attr("height","60px");
+		var svg = svg_wrap.append("svg").attr("width","100%").attr("height","135px");
 
+		var anno = svg.append("g").attr("transform","translate(0,55)");
 		var rects = svg.append("g");
 
 		var clipid = "clip" + (++clips);
@@ -306,8 +317,66 @@ function funnel(container){
 							 .style("shape-rendering","crispEdges")
 							 ;
 
-		if(arguments.length > 3){
-			function activate(){
+		var to_add_labels = arguments.length > 3;
+		var add_labels = function(){
+			var ypos = label_array.length == 1 ? [20] : [46, 20];
+
+			var labs = anno.selectAll("text").data(label_array)
+								.enter()
+								.append("text")
+								.attr("x", function(d){
+									var x = labels[d].x;
+									var val = labels[d].val;
+									var pos = (100*(x/tot))+"%";
+									var width = (100*(val/tot))+"%";
+									return pos;
+								})
+								.attr("dx",6)
+								.attr("y", function(d,i){
+									return ypos[i];
+								})
+								.text(function(d){
+									return labels[d].label;
+								})
+								.style("opacity","0")
+								.style("font-size","14px")
+								.transition()
+								.delay(function(d){
+									return labels[d].delay;
+								})
+								.duration(1200)
+								.style("opacity","1");
+
+			var leaders = anno.selectAll("g").data(label_array)
+								.enter()
+								.append("g")
+								.attr("transform","translate(10,0)")
+								.append("line")
+								.attr("x1", function(d){
+									var x = labels[d].x;
+									var pos = (100*(x/tot))+"%";
+									return pos;
+								})
+								.attr("x2", function(d){
+									var x = labels[d].x;
+									var pos = (100*(x/tot))+"%";
+									return pos;
+								})
+								.attr("y1", -15)
+								.attr("y2", function(d,i){return ypos[i]-14})
+								.style("opacity","0")
+								.style("stroke","#111111")
+								.style("stroke-width","1px")
+								.style("shape-rendering","crispEdges")
+								.transition()
+								.delay(function(d){
+									return labels[d].delay;
+								})
+								.duration(1200)
+								.style("opacity","1");
+		};	
+	
+		var activate = function(){
 				var stack2 = d3.stack().keys(keys2.map(function(d){return d.key}))(values);
 				var colors2 = keys2.map(function(d){return cols[d.col]});
 			
@@ -363,53 +432,59 @@ function funnel(container){
 
 				text_wrap.transition().duration(500).style("opacity",1);
 				marker.classed("active",true);
-				slide.transition().duration(500).style("opacity",1);	
-			}
+				slide.transition().duration(500).style("opacity",1);
+
+				if(to_add_labels){add_labels();}		
+		};				 
+
+		if(keys2 != null){
 			waypoint(slide.node()).buffer(-1, 0.7).activate(activate);		
 		}
 		else{
 			text_wrap.transition().duration(500).style("opacity",1);
 			marker.classed("active",true);
 			slide.transition().duration(500).style("opacity",1);
+			if(to_add_labels){add_labels();}
 		} 		
 	}
 
 	add_layer('In the 130 study jurisdictions, there are 78.9 million adults ages 25–64 who are civilians and not living in institutional settings such as correctional facilities. This bar represents that entire group.',
-			  null,
 			  [{key:"unemp_oow", col:2}, {key:"unemp_other", col:2}, {key:"nilf_oow", col:2}, 
-			   {key:"nilf_other", col:2}, {key:"emp", col:2}]
+			   {key:"nilf_other", col:2}, {key:"emp", col:2}],
+			   null,
+			   ["all"]
 			  );
 
 	add_layer('Of this 78.9 million, 4 million are <span class="unemployed-text">unemployed</span>—people who do not have a job, are available for work, and have actively looked for work in the last four weeks.',
-		  null,
 		  [{key:"unemp_oow", col:2}, {key:"unemp_other", col:2}, {key:"nilf_oow", col:2}, 
 		   {key:"nilf_other", col:2}, {key:"emp", col:2}],
 		  [{key:"unemp_oow", col:0}, {key:"unemp_other", col:0}, {key:"nilf_oow", col:2}, 
-		   {key:"nilf_other", col:2}, {key:"emp", col:2}]
+		   {key:"nilf_other", col:2}, {key:"emp", col:2}],
+		   ["unemp"]
 		 );
 
 	add_layer('An additional 16.2 million are considered <span class="nilf-text">not in the labor force</span>—people who are neither working nor looking for work. This is a heterogeneous group with different reasons for not entering the labor force, not all of which are readily observable. Individuals may be devoting time and energy towards other activities such as raising children, taking care of other family members, or going to school. They may be retired or have disabilities that preclude employment. They may be interested in working, but because they have not searched for a job in the past four weeks, they are not counted among the unemployed.',
-		  null,
 		  [{key:"unemp_oow", col:0}, {key:"unemp_other", col:0}, {key:"nilf_oow", col:2}, 
 		   {key:"nilf_other", col:2}, {key:"emp", col:2}],
 		  [{key:"unemp_oow", col:0}, {key:"unemp_other", col:0}, {key:"nilf_oow", col:1}, 
-		   {key:"nilf_other", col:1}, {key:"emp", col:2}]
+		   {key:"nilf_other", col:1}, {key:"emp", col:2}],
+		   ["unemp","nilf"]
 		 );
 
-	add_layer('Of the combined unemployed and not-in-the-labor-force populations, our goal is to identify those most likely to be interested in or benefit most from workforce development assistance. Therefore, we subtracted the following groups: people receiving retirement and disability benefits, most students, and our best estimate of people who choose to be stay-at-home parents with sufficient earnings from a spouse who works. These subtractions amount to 10 percent of the unemployed and 53 percent of those not in the labor force.',
-		  null,
+	add_layer('Of the combined unemployed and not-in-the-labor-force populations, our goal is to identify those most likely to be interested in or benefit from workforce development assistance. Therefore, we subtracted the following groups: people receiving retirement and disability benefits, most students, and our best estimate of people who choose to be stay-at-home parents with sufficient earnings from a spouse who works. These subtractions amount to 10 percent of the unemployed and 53 percent of those not in the labor force.',
 		  [{key:"unemp_oow", col:0}, {key:"unemp_other", col:0}, {key:"nilf_oow", col:1}, 
 		   {key:"nilf_other", col:1}, {key:"emp", col:2}],
 		  [{key:"unemp_oow", col:0}, {key:"nilf_oow", col:1}, 
-		   {key:"emp", col:2}, {key:"unemp_other", col:2, bump:true}, {key:"nilf_other", col:2, bump:true}]
+		   {key:"emp", col:2}, {key:"unemp_other", col:2, bump:true}, {key:"nilf_other", col:2, bump:true}],
+		   ["unemp_oow", "nilf_oow"]
 		 );
 
 	add_layer('This leaves 11.3 million individuals defined as <span class="oow-text">out-of-work</span> (14 percent of the 25–64 year-old non-institutionalized civilian population.)',
-	  null,
 	  [{key:"unemp_oow", col:0}, {key:"nilf_oow", col:1}, 
 	   {key:"unemp_other", col:2}, {key:"emp", col:2}, {key:"nilf_other", col:2}],
 	  [{key:"unemp_oow", col:3}, {key:"nilf_oow", col:3}, 
-	   {key:"unemp_other", col:2}, {key:"emp", col:2}, {key:"nilf_other", col:2}]
+	   {key:"unemp_other", col:2}, {key:"emp", col:2}, {key:"nilf_other", col:2}],
+	   ["oow"]
 	 );
 }
 
@@ -501,7 +576,7 @@ format.fn0 = function(fmt){
 	}
 };
 
-function sc_stack(){
+function sc_stack(drop_shadow_ref){
 
 	var colors = ['#666666','#65a4e5','#a6d854','#0d73d6','#fc8d62','#66c2a5','#e5c494','#ffd92f'];
 
@@ -525,6 +600,8 @@ function sc_stack(){
 		"6":"This is the wealthiest group, reporting median family income of $83,546. Two-thirds are married, the highest rate of any group, but few are caring for children. It is also the least racially and ethnically diverse group, and just 14 percent speak English less than very well. Twenty-nine percent were born outside the U.S., but like all members of the group, all possess a Bachelor degree or higher; and 88 percent of all members are U.S. citizens. They show moderate interest in work, comparable to that of the largest group of less-educated prime-age workers.",
 		"7":"Among all groups, members of this group were the most likely to have worked in the previous year, and they have the second-highest rate of actively looking for work. They are the least likely of any group to report some form of disability. All members have at least a Bachelor degree and relatively high median family income. This group is predominantly white and Asian; 39 percent were born outside the United States. Over half are married, and a quarter are married with children—the highest rate of any group."
 	};	
+
+	var drop_shadow = arguments.length > 0 ? drop_shadow_ref : "url(#feBlur)";
 
 	var sc = {};
 
@@ -555,6 +632,8 @@ function sc_stack(){
 		}
 	};
 
+	var rect_height = 50;
+
 	//rect_data should look like: [{count:x, share:count/total, id:superclus2}]
 	sc.stack = function(rect_data, svg, rect_callback, add_borders, highlight){
 		var cumulative = 0;
@@ -577,15 +656,20 @@ function sc_stack(){
 			return sc.title(d.id);
 		});
 
+		rectsG.filter(function(d){return d.id==highlight}).raise();
+
 		var rects0 = rectsG.selectAll("rect").data(function(d){return [d,d]});
 			rects0.exit().remove();
 		var rects = rects0.enter().append("rect").merge(rects0)
-						.attr("height",function(d,i){return i==1 ? "100%" : "108%"})
-						.attr("y",function(d,i){return i==1 ? "0%" : "-4%"})
+						.attr("height",function(d,i){return i==1 ? rect_height : rect_height+4})
+						.attr("y",function(d,i){return i==1 ? 0 : -2})
 						.style("shape-rendering","crispEdges")
 						.style("stroke","#eeeeee")
 						.style("stroke-width","0")
-						.style("visibility",function(d,i){return i==1 ? "visible" : (d.id==highlight ? "visible" : "hidden")});
+						.style("visibility",function(d,i){return i==1 ? "visible" : (d.id==highlight ? "visible" : "hidden")})
+						.attr("filter", function(d,i){
+							return i==0 && d.id==highlight ? drop_shadow : null;
+						});
 
 			rects.transition()
 				.duration(transition_duration)
@@ -607,8 +691,8 @@ function sc_stack(){
 			texts0.exit().remove();
 		var texts = texts0.enter().append("text").merge(texts0)
 						.attr("x", function(d){return (100*(d.cumulative + d.share))+"%"})
-						.attr("y", "100%")
-						.attr("dy",16)
+						.attr("y", rect_height)
+						.attr("dy",17)
 						.attr("dx",-3)
 						.attr("text-anchor","end")
 						.text(function(d){return format.sh1(d.share)})
@@ -644,7 +728,7 @@ function sc_stack(){
 									return format.num0(d.count)
 								}) 
 								.attr("x", function(d){return (100*(d.cumulative + d.share))+"%"})
-								.attr("y", "100%")
+								.attr("y", rect_height)
 								.attr("dy",35)
 								.attr("dx",-3)
 								.attr("text-anchor","end")
@@ -654,11 +738,52 @@ function sc_stack(){
 								.style("font-size","15px")
 								.style("visibility","hidden");
 
+		if(!!add_borders){
+			var line_rect_data = [];
+			var r = -1;
+			while(++r < rect_data.length){
+				if(rect_data[r].count > 0){
+					line_rect_data.push(rect_data[r]);
+				}
+			}
+
+			var lines0 = svg.selectAll("line").data(line_rect_data, function(d){return d.mergeid});
+				lines0.exit().remove();
+			var lines = lines0.enter().append("line")
+					.merge(lines0)
+					.attr("y1",-2).attr("y2",rect_height+4)
+					.attr("stroke","#ffffff")
+					.attr("stroke-width","1px")
+					.style("shape-rendering","auto");
+
+				//raise the selected above lines
+				rectsG.filter(function(d){return d.id==highlight}).raise();
+				//raise all but selected line above the rectG
+				lines.filter(function(d){
+					return d.id != highlight;
+				}).raise();
+
+				lines.transition()
+					.duration(transition_duration)
+					.attr("x1", function(d){
+						return ((d.cumulative+d.share)*100)+"%";
+					})
+					.attr("x2", function(d){
+						return ((d.cumulative+d.share)*100)+"%";
+					})
+					.on("end",function(d){
+						d3.select(this).style("shape-rendering","crispEdges");
+					})
+					;
+		}
+
+
 		var text_num_fixed = false;
 		if(arguments.length > 2 && typeof rect_callback == "function"){
 			var selected_superclus = "ALL";
 			var selected_group = "ALL";
 			rectsG.on("mousedown", function(d,i){
+				
 				if(d.id === selected_superclus && d.group === selected_group){
 					//reset to no selection
 					selected_superclus = "ALL";
@@ -667,11 +792,19 @@ function sc_stack(){
 				else{
 					selected_superclus = d.id;
 					selected_group = d.group;
+					d3.select(this).raise();
 				}
 
-				rectsG.selectAll("rect").filter(function(d,i){return i==0}).style("visibility", function(d,i){
-					return d.id===selected_superclus && d.group===selected_group ? "visible" : "hidden";
-				});
+				lines.filter(function(d){
+					return d.id != selected_superclus || d.group != selected_group;
+				}).raise();
+
+				rects.filter(function(d,i){return i==0})
+						.style("visibility", function(d,i){
+							return d.id===selected_superclus && d.group===selected_group ? "visible" : "hidden";
+						}).attr("filter", function(d,i){
+							return d.id===selected_superclus ? drop_shadow : null;
+						});
 
 				text_num_fixed = selected_superclus == "ALL" ? false : i;
 				text_num_fixed = false; //never fix, for now
@@ -696,28 +829,6 @@ function sc_stack(){
 			});			
 		});
 
-		if(!!add_borders){
-			var lines0 = svg.selectAll("line").data(rect_data, function(d){return d.mergeid});
-			lines0.exit().remove();
-			lines0.enter().append("line")
-					.merge(lines0)
-					.attr("y1","-5%").attr("y2","105%")
-					.attr("stroke","#ffffff")
-					.attr("stroke-width","1px")
-					.style("shape-rendering","auto")
-					.transition()
-					.duration(transition_duration)
-					.attr("x1", function(d){
-						return ((d.cumulative+d.share)*100)+"%";
-					})
-					.attr("x2", function(d){
-						return ((d.cumulative+d.share)*100)+"%";
-					})
-					.on("end",function(d){
-						d3.select(this).style("shape-rendering","crispEdges");
-					})
-					;
-		}
 	};
 
 	return sc;
@@ -1081,12 +1192,12 @@ function interventions(){
 	descriptions.long = {
 		BP:['<b>Bridge programs</b>&nbsp;are for people who need additional academic preparation before enrolling in post-secondary education or job training.&nbsp;<a href="https://www2.ed.gov/about/offices/list/ovae/pi/cclo/brief-1-bridge-programs.pdf">Low literacy and math levels</a>&nbsp;prevent many adults from succeeding in job training or earning educational credentials, and bridge programs are&nbsp;<a href="http://www.air.org/sites/default/files/downloads/report/AIR_Changing_the_Odds_0.pdf">one response</a>&nbsp;to increase the completion rates of those in need of academic remediation.&nbsp;Some bridge programs focus on preparing for the GED and thus are designed expressly for people without high school diplomas, but others are open to high school graduates as well, depending on their skill levels. Bridge programs typically use a contextualized learning approach, in which students develop their academic skills in the context of occupational training or real-world scenarios such as career exploration.', '<a href="https://www.sbctc.edu/colleges-staff/programs-services/i-best/">I-BEST</a>&nbsp;and&nbsp;<a href="http://www.laguardia.edu/ACE/Programs/CCPI/BridgeProgram/">Bridge to College and Careers</a>&nbsp;are examples of bridge programs that have been evaluated, but there are many more, including those developed as part of multi-state initiatives such as&nbsp;<a href="http://www.jff.org/sites/default/files/publications/materials/BT_toolkit_June7.pdf">Breaking Through</a>,&nbsp;<a href="http://www.joycefdn.org/assets/images/joyceFnd_ShiftingGears3.0_update.pdf">Shifting Gears</a>, and&nbsp;<a href="http://www.jff.org/initiatives/accelerating-opportunity">Accelerating Opportunity</a>.'],
 		TJ:['<b>Transitional jobs programs&nbsp;</b>are for people with limited work experience who would otherwise struggle to find employment.&nbsp;<a href="https://www.mdrc.org/sites/default/files/LookingForwardMemo_SubsidizedEmployment.pdf">These programs</a>&nbsp;provide short-term subsidized employment<b>&nbsp;</b>and supportive services<b>&nbsp;</b>based on the theory that the best way to learn to work is by working. A number of programs are&nbsp;<a href="https://www.mdrc.org/publication/implementation-and-early-impacts-next-generation-subsidized-employment-programs">currently being evaluated</a>, building on the lessons of previous evaluations, which have been mixed. The&nbsp;<a href="https://ceoworks.org/">Center for Employment Opportunities</a>, which serves previously incarcerated people, was found to significantly&nbsp;<a href="http://www.mdrc.org/sites/default/files/full_451.pdf">reduce recidivism</a>, but it did not increase subsequent unsubsidized employment,&nbsp;<a href="https://www.mdrc.org/publication/should-government-subsidize-jobs-unemployed">nor did other recently evaluated programs.</a>&nbsp;Some researchers have suggested that in addition to testing new strategies to improve employment outcomes of transitional jobs participants,&nbsp;<a href="http://www.mdrc.org/publication/transitional-jobs">it may also be important</a>&nbsp;to consider other benefits related to community-building and civic engagement. Individuals could build on their&nbsp;<a href="http://www.buildingbetterprograms.org/wp-content/uploads/2016/04/persistent-nonworkers.pdf">roles as community members and parents</a>&nbsp;by engaging in constructive, stipend-paying activities such as participating in an afterschool safety patrol or maintaining a community garden.', 'More information on transitional jobs is available via the&nbsp;<a href="https://www.heartlandalliance.org/nationalinitiatives/our-initiatives/national-transitional-jobs/">National Transitional Jobs Network</a>&nbsp;and a&nbsp;<a href="https://www.law.georgetown.edu/academics/centers-institutes/poverty-inequality/current-projects/upload/GCPI-Subsidized-Employment-Paper-20160413.pdf">report reviewing their history and effectiveness</a>.'],
-		SE:['<b>Social enterprises&nbsp;</b>hire people with limited work experience who would otherwise struggle to find employment.&nbsp;<a href="https://socialenterprise.us/about/social-enterprise/">Social enterprises</a> combine the social mission of a nonprofit with the market-driven approach of a business, and while they can focus on any of a number of social issues, the programs featured here focus specifically on employment. They run businesses in fields such as food service, groundskeeping, and maintenance, and directly hire the people they are serving. In conjunction with employment, the organizations&nbsp;provide supportive services and help employees find other job opportunities when they are ready.&nbsp;The organizations develop a mutually reinforcing relationship between the business and social missions—the social mission of serving the unemployed would not be financially viable without the business revenue, and the enterprise relies on participants as its workforce. A&nbsp;<a href="https://www.mathematica-mpr.com/news/mathematica-jobs-study-explores-social-enterprises-redf">recent evaluation</a>&nbsp;of social enterprises in California found that they increased employment levels among participants.','Social enterprises have grown in popularity in recent years, with&nbsp;<a href="https://ssir.org/topics/category/social_enterprise">active discussions</a>&nbsp;about the challenges and opportunities of melding nonprofit and for-profit business models. They have a variety of investors and financing models, with one foundation,&nbsp;<a href="http://redf.org/">REDF</a>, that focuses solely on employment-focused social enterprises and has made several commitments to expand and&nbsp;<a href="http://redf.org/what-we-do/lead/">strengthen the field</a>.'],
+		SE:['<b><a href="https://socialenterprise.us/about/social-enterprise/">Social enterprises</a></b>&nbsp;hire people with limited work experience who would otherwise struggle to find employment.&nbsp;They combine the social mission of a nonprofit with the market-driven approach of a business, and while they can focus on any of a number of social issues, the programs featured here focus specifically on employment. They run businesses in fields such as food service, groundskeeping, and maintenance, and directly hire the people they are serving. In conjunction with employment, the organizations&nbsp;provide supportive services and help employees find other job opportunities when they are ready.&nbsp;The organizations develop a mutually reinforcing relationship between the business and social missions—the social mission of serving the unemployed would not be financially viable without the business revenue, and the enterprise relies on participants as its workforce. A&nbsp;<a href="https://www.mathematica-mpr.com/news/mathematica-jobs-study-explores-social-enterprises-redf">recent evaluation</a>&nbsp;of social enterprises in California found that they increased employment levels among participants.','Social enterprises have grown in popularity in recent years, with&nbsp;<a href="https://ssir.org/topics/category/social_enterprise">active discussions</a>&nbsp;about the challenges and opportunities of melding nonprofit and for-profit business models. They have a variety of investors and financing models, with one foundation,&nbsp;<a href="http://redf.org/">REDF</a>, that focuses solely on employment-focused social enterprises and has made several commitments to expand and&nbsp;<a href="http://redf.org/what-we-do/lead/">strengthen the field</a>.'],
 		JS:['<b>Job search assistance and counseling&nbsp;</b>refers broadly to services to help employers and job seekers connect more efficiently than they might otherwise. They reduce labor market friction by providing job candidates with information about job opportunities, in-demand skills, and training options. These services are central to the network of federally supported&nbsp;<a href="https://www.careeronestop.org/LocalHelp/AmericanJobCenters/american-job-centers.aspx">American Job Centers</a>, and are also incorporated into many other workforce programs. More specifically, such services consist of skill and interest assessments, career and training planning, case management and referrals, help with resume preparation and interviewing skills, and information on various job openings and associated skill and education requirements. They can be provided by staff or be self-service via a resource room and online offerings, and can be individualized or provided in group settings such as workshops.','<a href="http://research.upjohn.org/cgi/viewcontent.cgi?article=1161&amp;context=up_bookchapters">Past research</a>&nbsp;supports the effectiveness of publicly supported job search assistance, as does a more&nbsp;<a href="https://www.mathematica-mpr.com/our-publications-and-findings/publications/providing-public-workforce-services-to-job-seekers-15-month-impact-findings-on-the-wia-adult?MPRSource=TCSide">recent evaluation</a>&nbsp;of staff-assisted and personalized assistance in American Job Centers.'],
 		SI:['<b>Sector initiatives&nbsp;</b>are partnerships among employers, educators, and other workforce stakeholders<b>&nbsp;</b>to identify and address the workforce needs of particular industries within a regional labor market. They have a “dual customer” approach, seeking to the meet the needs of both employers and workers. These partnerships identify employers’ skill and workforce needs, aggregate employer interest and demand, and develop recruiting, assessment, and training strategies to help employers find workers with the right skills. They reduce the inefficiencies of one-by-one engagements in which training organizations seek to meet the job placement and training needs of individual employers. The organization operating the sector strategy (often a training organization, consortium of employers, or local workforce investment board) develops expertise about a given industry’s occupational skill requirements, business practices, markets, and other factors that affect employers’ hiring and training needs.','A growing body of research supports their effectiveness (see&nbsp;<a href="http://www.aspenwsi.org/resource/ppvtuning-local-labor-market/">here</a>,&nbsp;<a href="http://www.mdrc.org/publication/encouraging-evidence-sector-focused-advancement-strategy-0">here</a>, and&nbsp;<a href="http://economicmobilitycorp.org/index.php?page=81">here</a>). The field is maturing, as evidenced by a&nbsp;<a href="https://www.aspeninstitute.org/publications/connecting-people-work/">book examining various aspects of sector-based workforce development&nbsp;</a>as well as networks such as the&nbsp;<a href="https://insightcced.org/our-areas-of-focus/workforce-development/national-network-of-sector-partners-nnsp/">National Network of Sector Practitioners</a>&nbsp;and the&nbsp;<a href="https://nationalfund.org/">National Fund for Workforce Solutions</a>.'],
 		"2G":['<b>Two-generation programs&nbsp;</b>meet the needs of low-income<b>&nbsp;</b>parents and their children together. Different programs emphasize&nbsp;various aspects of family and economic well-being, with some specifically focused on employment. These provide training to low-income parents for in-demand jobs coupled with quality early childhood education for their young children. A two-generation approach is not new, but a fresh wave of programs and energy has emerged in the past five to ten years; see&nbsp;<a href="http://www.futureofchildren.org/sites/futureofchildren/files/media/helping_parents_helping_children_24_01_full_journal.pdf">here</a>&nbsp;for more background.','<a href="https://captulsa.org/families/family-advancement/careeradvance/">Career<i>Advance</i></a>, a program helping parents prepare for jobs in the health care field,&nbsp;<a href="http://b.3cdn.net/ascend/91a575b42e3dc4983b_t4m6v6upy.pdf">was recently found</a>&nbsp;to have positive effects on both parents and children. A network of practitioners, researchers, philanthropists, and educators,&nbsp;<a href="http://ascend.aspeninstitute.org/">Ascend</a>, is actively supporting the adoption and refinement of two-generation approaches.'],
 		AP:['<b>Apprenticeships&nbsp;</b>take an “earn and learn” approach to education and training: apprentices earn wages while performing productive work and undergoing supervised, work-based training with related academic instruction. They represent the most structured model of employer engagement in training, since employers hire the apprentices and provide on-the-job training.',
-			'Most apprenticeships&nbsp;<a href="http://ftp.iza.org/pp46.pdf">are clustered in construction and manufacturing</a>, although they exist in other fields such as utilities, auto and truck repair, police and fire, trucking, child care, and long-term care.&nbsp;<a href="https://www.mathematica-mpr.com/our-publications-and-findings/publications/an-effectiveness-assessment-and-costbenefit-analysis-of-registered-apprenticeship-in-10-states">An analysis</a>&nbsp;of&nbsp;registered apprenticeship in 10 states found large earnings gains among those who participated. (There are also apprenticeships that are not registered with the federal or state governments, although less is known about these.) Other research is also positive: one study reported that employers participating in registered apprenticeships&nbsp;<a href="Another%20study%20found%20that%20employers%20with%20apprenticeship%20programs%20benefited%20as%20well%20in%20terms%20of%20increased%20productivity.">valued the program</a>&nbsp;and found that it helped meet their needs for skilled workers, and another identified<a href="http://www.esa.gov/reports/benefits-and-costs-apprenticeships-business-perspective"> productivity gains</a>&nbsp;for&nbsp;employers with apprenticeship programs.', 'For more information, see the&nbsp;<a href="https://innovativeapprenticeship.org/">American Institute for Innovative Apprenticeship</a>.'],
+			'Most apprenticeships&nbsp;<a href="http://ftp.iza.org/pp46.pdf">are clustered in construction and manufacturing</a>, although they exist in other fields such as utilities, auto and truck repair, police and fire, trucking, child care, and long-term care.&nbsp;<a href="https://www.mathematica-mpr.com/our-publications-and-findings/publications/an-effectiveness-assessment-and-costbenefit-analysis-of-registered-apprenticeship-in-10-states">An analysis</a>&nbsp;of&nbsp;registered apprenticeship in 10 states found large earnings gains among those who participated. (There are also apprenticeships that are not registered with the federal or state governments, although less is known about these.) Other research is also positive: one study reported that employers participating in registered apprenticeships&nbsp;<a href="https://www.brookings.edu/wp-content/uploads/2016/06/expand_apprenticeships_united_states_lerman.pdf">valued the program</a>&nbsp;and found that it helped meet their needs for skilled workers, and another identified<a href="http://www.esa.gov/reports/benefits-and-costs-apprenticeships-business-perspective"> productivity gains</a>&nbsp;for&nbsp;employers with apprenticeship programs.', 'For more information, see the&nbsp;<a href="https://innovativeapprenticeship.org/">American Institute for Innovative Apprenticeship</a>.'],
 		AS:['<b>ASAP (Accelerated Study in Associate Programs)&nbsp;</b>is a comprehensive approach designed by the City University of New York to increase the graduation rate of low-income community college students seeking an Associate degree.&nbsp;<a href="http://www1.cuny.edu/sites/asap/">The program</a>&nbsp;requires students to attend full-time and provides a range of academic, financial, and personal supports. It was created in 2007 with support from the&nbsp;<a href="http://www1.nyc.gov/site/opportunity/index.page">New York City Center for Economic Opportunity</a>&nbsp;(now known as the Mayor’s Office for Economic Opportunity).','<a href="http://www.mdrc.org/project/evaluation-accelerated-study-associate-programs-asap-developmental-education-students#overview">An evaluation</a>&nbsp;found that ASAP almost doubled graduation rates, the largest effect the researchers had found in any large-scale evaluation of a higher education program. CUNY has expanded ASAP to serve more students across its colleges, and a&nbsp;<a href="http://www.mdrc.org/publication/bringing-cuny-accelerated-study-associate-programs-asap-ohio">replication study</a>&nbsp;in Ohio community colleges is underway.']
 	};
 
@@ -1331,7 +1442,7 @@ function supercluster_profiles(container){
 			title.append("span").text(sc_stacker.title(d.superclus2));
 
 							 
-		var svg = title_box.append("svg").style("width", "100%").style("height","50px");
+		var svg = title_box.append("svg").style("width", "100%").style("height","80px");
 
 		var rect_data = supercluster_profile_data.map(function(d){
 			return {count: d.count, id:d.superclus2, mergeid:d.superclus2, group:null, share:d.count/tot_oow}
@@ -1345,7 +1456,7 @@ function supercluster_profiles(container){
 		var wrap = thiz.append("div").classed("c-fix topline-bar-charts makesans",true);
 
 		//overview_text
-		var left_side = wrap.append("div").classed("left40",true).style("margin-top","2em");
+		var left_side = wrap.append("div").classed("left40",true).style("margin-top","5px");
 		var overview_wrap = left_side.append("div").classed("reading",true).style("margin-left","10px");
 			overview_wrap.append("p").classed("font1x",true).text("Overview").style("font-weight","bold").style("margin-bottom","0.4em");
 			overview_wrap.append("p").text(sc_stacker.description(d.superclus2));
@@ -1355,7 +1466,7 @@ function supercluster_profiles(container){
 		I.grid_small(intervention_wrap.node(), d.superclus2, COLOR);
 		
 		//bar charts
-		var bar_chart_wrap = wrap.append("div").style("float","left").classed("left60",true).style("margin-top","2em");
+		var bar_chart_wrap = wrap.append("div").style("float","left").classed("left60",true).style("margin-top","5px");
 
 
 		bar_charts(d, bar_chart_wrap, COLOR);
@@ -1406,13 +1517,13 @@ function puma_maps(container){
 		var num_wide = 4;
 
 		if(width > 1100 && rect_data.length <= 6){
-			num_wide =  aspect > 0.45 ? 6 : 4;
+			num_wide =  aspect > 0.4 ? 6 : (aspect > 0.25 ? 4 : 2);
 		}
 		else if(width > 800){
-			num_wide =  aspect > 0.45 ? 4 : 2;
+			num_wide =  aspect > 0.4 ? 4 : (aspect > 0.25 ? 2 : 1);
 		}
 		else{
-			num_wide = aspect > 0.45 ? 2 : 1;
+			num_wide = aspect > 0.4 ? 2 : 1;
 		}
 
 		var sm_width = Math.floor(width/num_wide);
@@ -1505,26 +1616,32 @@ function puma_maps(container){
 
 	//callback should first layout, then draw
 	var get_topo = function(geo_id, callback){
-		if(topo_repo.hasOwnProperty(geo_id)){
-			var topo = topo_repo[geo_id];
-			callback(topo);
+		if(geo_id=="AGG"){
+			wrap.style("visibility", "hidden");
+			//don't map
 		}
 		else{
-			var file =  dir.url("maps", geo_id+".json");
-			try{
-				d3.json(file, function(err, dat){
-					if(!!err){
-						callback(null);
-					}
-					else{
-						topo_repo[geo_id] = dat;
-						callback(dat);
-					}
-				});
+			if(topo_repo.hasOwnProperty(geo_id)){
+				var topo = topo_repo[geo_id];
+				callback(topo);
 			}
-			catch(e){
-				//console.log(e);
-				callback(null);
+			else{
+				var file = dir.url("maps", geo_id+".json");
+				try{
+					d3.json(file, function(err, dat){
+						if(!!err){
+							callback(null);
+						}
+						else{
+							topo_repo[geo_id] = dat;
+							callback(dat);
+						}
+					});
+				}
+				catch(e){
+					//console.log(e);
+					callback(null);
+				}
 			}
 		}
 	};
@@ -1741,13 +1858,13 @@ function jurisdiction_profiles(container){
 							.text(function(d){return d.FIPS_final=="AGG" ? "All jurisdictions" : d.Name_final});
 		
 		//ribbon svg (stacked bar)				   
-		var svg = outer_wrap.append("svg").attr("width","100%").attr("height","50px");
+		var svg = outer_wrap.append("svg").attr("width","100%").attr("height","80px");
 
 		//wrapper of topline data readout and bar charts
 		var wrap = outer_wrap.append("div")
 							 .classed("c-fix topline-bar-charts",true);
 
-		var data_title_wrap = wrap.append("div").style("margin","36px 0em 0em 0px").style("padding","0em 10px 0px 10px");
+		var data_title_wrap = wrap.append("div").style("margin","5px 0em 0em 0px").style("padding","0em 10px 0px 10px");
 		var data_title = data_title_wrap.append("p").style("line-height","1.5em").style("margin","0em");
 
 		//topline data readouot
@@ -1904,6 +2021,21 @@ function main(){
 	//dir.local("./");
 	//dir.add("avatars", "data/avatars");
 	//dir.add("maps", "data/maps");
+
+	var defs = d3.select("#svg-filter").style("height","5px").append("svg").append("defs");
+	var filter = defs.append("filter").attr("id","feBlur").attr("width","150%").attr("height","150%");
+		filter.append("feOffset").attr("result","offsetout").attr("in","SourceGraphic").attr("dx","2").attr("dy","2");
+		filter.append("feColorMatrix").attr("result","matrixout").attr("in","offsetout").attr("type","matrix").attr("values","0.25 0 0 0 0 0 0.25 0 0 0 0 0 0.25 0 0 0 0 0 1 0");
+		filter.append("feGaussianBlur").attr("result","blurout").attr("in","matrixout").attr("stdDeviation","2");
+		filter.append("feBlend").attr("in","SourceGraphic").attr("in2","blurout").attr("mode","normal");
+
+		/*filter.html(
+					'<feOffset result="offsetout" in="SourceGraphic" dx="2" dy="2" />' + 
+					'<feColorMatrix result="matrixout" in="offsetout" type="matrix" values="0.25 0 0 0 0 0 0.25 0 0 0 0 0 0.25 0 0 0 0 0 1 0" />' +
+      				'<feGaussianBlur result="blurout" in="matrixout" stdDeviation="2" />' +
+      				'<feBlend in="SourceGraphic" in2="blurout" mode="normal" />'
+      				)
+					;*/
 
 	//production data
 	dir.add("avatars", "out-of-work/data/avatars");
