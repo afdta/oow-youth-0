@@ -103,14 +103,18 @@ div.reading{
 div.reading.centered{
   margin-right:auto;
   margin-left:auto;
-  max-width:900px;
+  max-width:1000px;
+  line-height:1.875em;
+}
+div.reading.centered *{
+  line-height:1.875em;
 }
 
 div.floated-map{
   float:right;
   min-width:320px;
-  max-width:480px;
-  width:45%;
+  max-width:700px;
+  width:50%;
   margin:1em 0em 2em 2em;
   position:relative;
 }
@@ -208,7 +212,7 @@ p.cluster-title.bordered{
 
   margin:4em 0em 1em 0em;
 
-  padding: 0em 0em 0.35em 0em;
+  padding: 0em 1em 0.35em 1em;
   border-bottom: 1px solid #aaaaaa;
   text-align:center;
 }
@@ -512,6 +516,10 @@ div.topline-bar-charts, div.puma-map-wrap{
     width:100%;
   }
 
+  div.subway-tile:nth-child(odd) {
+      clear:none;
+  }  
+
   div.topline-bar-charts, div.puma-map-wrap{
     max-width:420px;
   }
@@ -527,6 +535,10 @@ div.topline-bar-charts, div.puma-map-wrap{
     width:50%;
   }
 
+  div.subway-tile:nth-child(odd) {
+      clear:left;
+  }  
+
   div.topline-bar-charts, div.puma-map-wrap{
     max-width:640px;
   } 
@@ -534,8 +546,8 @@ div.topline-bar-charts, div.puma-map-wrap{
   div.floated-map{
     float:right;
     min-width:320px;
-    max-width:600px;
-    width:45%;
+    max-width:700px;
+    width:50%;
     margin:1em 0em 2em 2em;
   }    
 }
@@ -544,6 +556,10 @@ div.topline-bar-charts, div.puma-map-wrap{
   div.subway-tile{
     width:50%;
   } 
+
+  div.subway-tile:nth-child(odd) {
+      clear:left;
+  }  
 
   .metro-interactive .left70,
   .metro-interactive .left60, 
@@ -584,6 +600,10 @@ div.topline-bar-charts, div.puma-map-wrap{
   div.subway-tile{
     width:25%;
   } 
+
+  div.subway-tile:nth-child(odd) {
+      clear:none;
+  }  
 
   .metro-interactive .left70,
   .metro-interactive .left60, 
