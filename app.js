@@ -222,8 +222,8 @@ function funnel(container){
 	var values = [{
 				unemp_oow: 3.6,
 				unemp_other: 0.4,
-				nilf_oow: 7.614,
-				nilf_other: 8.586,
+				nilf_oow: 7.7,
+				nilf_other: 8.5,
 				emp: 58.7
 			 }];
 
@@ -232,7 +232,7 @@ function funnel(container){
 		unemp: {label: "4 million unemployed", x:0, val:4, delay:500},
 		nilf: {label: "16.2 million not in the labor force", x:4, val:16.2, delay:500},
 		unemp_oow: {label:"3.6 million out-of-work / unemployed", x:0, val:3.6, delay:3300},
-		nilf_oow: {label:"7.6 million out-of-work / not in the labor force", x:3.6, val:7.6, delay:3300},
+		nilf_oow: {label:"7.7 million out-of-work / not in the labor force", x:3.6, val:7.7, delay:3300},
 		oow: {label:"11.3 million out-of-work", x:0, val:11.3, delay:1200}
 	};
 
