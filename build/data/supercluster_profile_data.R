@@ -11,11 +11,31 @@ keep <- c("FIPS_final", "sample",
           "nospouse_kids", "snap", "fincpadj")
 
 #"agemed", "age75", "age25", "Name_final"
-
 #why doesn't topline equal sum of cluster data? see aggregate geos case for proof
+supers <- data.frame(name=c("Young, less-educated, and diverse",
+                            "Less-educated prime-age people",
+                            "Diverse, less-educated, and eyeing retirement",
+                            "Motivated and moderately educated younger people",
+                            "Moderately educated older people",
+                            "Highly educated and engaged younger people",
+                            "Highly educated, high-income older people"),
+                     superclus2=c(3,1,2,5,4,7,6),
+                     order=1:7)
+clus <- function(partial_name){
+  return(supers[grep(partial_name, supers$name, ignore.case=TRUE), 1:2])
+}
+
+addsupers <- function(df){
+  df2 <- merge(supers, df, by="superclus2")
+  return(df2[order(df2$order), ])
+}
+           
+boston<-all[grep("Boston", all$Name_final), 1:6]   
+boston$shares <- boston$count/boston[boston$group=="ALL","count"]
+asboston<-addsupers(boston)[c("superclus2","name","Name_final","group","count","shares")]
 
 all <- read.csv("cluster, supercluster data.csv", stringsAsFactors = FALSE)
-
+distro <- read.csv("supercluster distribution by geo.csv", stringsAsFactors = FALSE)
 distribution <- read.csv("supercluster distribution by geo.csv", stringsAsFactors = FALSE) %>%
                 gather(superclus, share, supercluster_pct1:supercluster_pct7) %>%
                 separate(superclus, c("level","superclus2"), "_pct", convert=TRUE)
@@ -23,7 +43,8 @@ distribution <- read.csv("supercluster distribution by geo.csv", stringsAsFactor
 topline <- read.csv("topline descriptive statistics 25-64.csv", stringsAsFactors = FALSE)    #[c("POP",keep)]
 toptest <- topline
 toptest$nilf_total <- toptest$count*toptest$nilf
-toptest[1:5, c(1:5, length(toptest))]
+toptest$unemp_total <- toptest$count*toptest$unemployed
+toptest[1:5, c(1:5, length(toptest), length(toptest)-1)]
 
 sumsum <- function(d){
   return(data.frame(sum=sum(d$count, na.rm=TRUE), n=nrow(d)))
