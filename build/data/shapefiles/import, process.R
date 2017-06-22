@@ -5,11 +5,16 @@ library("ggplot2")
 
 setwd("/home/alec/Projects/Brookings/out-of-work/build/data")
 
-distribution <- read.csv("supercluster distribution by geo.csv", stringsAsFactors = FALSE) %>%
-  gather(superclus, share, supercluster_pct1:supercluster_pct7) %>%
-  separate(superclus, c("level","superclus2"), "_pct", convert=TRUE)
+#previous data lacked leading zeros
+pd_no0 <- read.csv("cluster, supercluster distribution by puma [no leading zeros].csv", stringsAsFactors=FALSE, colClasses=c(stpuma="character"))
 
+#revised data, output from excel doc
 pumadat <- read.csv("cluster, supercluster distribution by puma.csv", stringsAsFactors=FALSE, colClasses=c(stpuma="character"))
+
+#test
+all.equal(pumadat, pd_no0)
+sum(as.numeric(pumadat$stpuma)==as.numeric(pd_no0$stpuma))
+
 pumadat2 <- pumadat[c(1,3,6:21)]
 names(pumadat2) <- sub("pct_supercluster", "sc", names(pumadat2))
 names(pumadat2) <- sub("pct_cluster", "grp", names(pumadat2))
@@ -24,7 +29,7 @@ sp1 <- readOGR("/home/alec/Projects/Brookings/out-of-work/build/data/shapefiles"
 #higgins <-readOGR("/home/alec/Projects/Brookings/out-of-work/build/data/shapefiles", layer="higgins geos")
 #places <-readOGR("/home/alec/Projects/Brookings/out-of-work/build/data/shapefiles", layer="Export_Output")
 
-sp2 <- merge(sp1, pumadat2, by.x="GEOID10", by.y="stpuma", all.x=FALSE)[c(1,11:27)]
+sp2 <- merge(sp1, pumadat2, by.x="GEOID10", by.y="stpuma", all.x=FALSE)[, c(1,11:27)]
 
 pumadat3 <- sp2@data
 test <- merge(pumadat3, pumadat2, by.x=c("GEOID10", "FIPS_final"), by.y=c("stpuma", "FIPS_final"))
@@ -43,6 +48,9 @@ makeWriteShp <- function(place_input){
 for(p in places){
   makeWriteShp(p)
 }
+
+
+#################################################RUN SOME MAP TESTS
 
 #plot dc
 plot(sp2[sp2@data$FIPS_final=="11001a",])
